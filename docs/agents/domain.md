@@ -18,23 +18,23 @@ Single-context layout (this hub):
 jarvis/
 ├── CONTEXT.md              ← glossary
 ├── docs/
-│   ├── adr/                ← 0001-slug.md, …
+│   ├── adr/<project>/      ← NNNN-slug.md, … (scoped per project)
 │   ├── agents/             ← agent config (this file, issue-tracker.md)
 │   └── plans/<slug>/       ← per-effort design notes
 └── .agents/skills/
 ```
 
-Code repos under `~/projects/<name>/` hold implementation; the hub holds shared language and plans. Do not duplicate the full glossary inside plan bodies — link to `CONTEXT.md` and cite `docs/adr/` when a decision is recorded there.
+Code repos under `~/projects/<name>/` hold implementation; the hub holds shared language and plans. Do not duplicate the full glossary inside plan bodies — link to `CONTEXT.md` and cite `docs/adr/<project>/` when a decision is recorded there.
 
 ## Glossary vs ADR vs plan
 
 | Artifact               | Purpose                                      | Where                            |
 |------------------------|----------------------------------------------|----------------------------------|
 | **CONTEXT.md term**    | Canonical word for a concept                 | Root glossary                    |
-| **docs/adr/NNNN-*.md** | Hard-to-reverse decision with trade-offs     | Persistent ADR file              |
+| **docs/adr/<project>/NNNN-*.md** | Hard-to-reverse decision with trade-offs     | Persistent ADR file (project-scoped)              |
 | **docs/plans/.../design.md** | Decisions for *this effort* for implementers | Plan folder                      |
 
-During `/grill-with-docs`: resolve vocabulary in `CONTEXT.md` first; if a decision passes all three ADR gates (see domain-modeling skill), write `docs/adr/` and reference it from the plan instead of duplicating prose.
+During `/grill-with-docs`: resolve vocabulary in `CONTEXT.md` first; if a decision passes all three ADR gates (see domain-modeling skill), write `docs/adr/<project>/` and reference it from the plan instead of duplicating prose.
 
 ## Vocabulary
 
@@ -44,7 +44,7 @@ If a concept is missing from the glossary, resolve it in a grill round before fi
 
 ## ADR conflicts
 
-If plan content contradicts an existing `docs/adr/` entry, surface it explicitly:
+If plan content contradicts an existing `docs/adr/<project>/` entry, surface it explicitly:
 
 > _Contradicts ADR-0007 (…), but worth reopening because…_
 
