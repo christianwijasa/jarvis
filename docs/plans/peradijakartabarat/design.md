@@ -6,7 +6,7 @@
 - Origin (primary): https://cursor.com/codebase/fchr/peradijakartabarat
 - GitHub sibling: https://github.com/christianwijasa/peradijakartabarat
 
-**Related ADRs:** [ADR-0001: Origin as Source of Truth for peradijakartabarat](../../adr/0001-origin-sot-peradijakartabarat.md)
+**Related ADRs:** [ADR-0001: Origin as Source of Truth for peradijakartabarat](../../adr/peradijakartabarat/0001-origin-sot.md)
 
 ---
 

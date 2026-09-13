@@ -65,5 +65,5 @@ Cloud Agents default to Origin repositories when available. The hub's `workstati
 ---
 
 **References:**
-- [workstation/repos.manifest](../../workstation/repos.manifest)
-- [docs/plans/peradijakartabarat/design.md](../plans/peradijakartabarat/design.md)
+- [workstation/repos.manifest](../../../workstation/repos.manifest)
+- [docs/plans/peradijakartabarat/design.md](../../plans/peradijakartabarat/design.md)
