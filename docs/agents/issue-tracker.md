@@ -4,12 +4,12 @@ Work is tracked as **markdown files** in this repo, not GitHub Issues on the hub
 
 ## Location
 
-- Directory: [`.scratch/issues/`](../../.scratch/issues/)
+- Directory: [`.scratch/issues/<project>/`](../../.scratch/issues/) (scoped per project)
 - Filename pattern: `<id>-<slug>.md` (e.g. `001-auth-refactor.md`)
-- `id`: zero-padded counter or date prefix you choose consistently
+- `id`: zero-padded counter or date prefix you choose consistently (local to project folder)
 - `slug`: short kebab-case title
 
-Issue **bodies** (`*.md`) are gitignored; the directory layout is committed (`.gitkeep`).
+Issue **bodies** (`*.md`) are gitignored; the directory layout is committed (`.gitkeep` per project folder).
 
 ## File format
 
@@ -34,7 +34,7 @@ Agents may create and update these files when the user asks to track work. Do no
 
 ## Pairing with plans
 
-When working on scratch issue `001-auth-refactor`:
+When working on scratch issue `<project>/001-auth-refactor`:
 
 1. Read the scratch file (create if missing and user requested tracking).
 2. Check `docs/plans/auth-refactor/` for existing `design.md`.

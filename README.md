@@ -19,7 +19,7 @@ Personal multi-repo hub (Origin: `fchr/jarvis`): manifest-driven clones under `~
 
 ## Scratch issues
 
-Local tickets live under [`.scratch/issues/`](.scratch/issues/). Issue file bodies (`*.md`) are gitignored; see [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
+Local tickets live under [`.scratch/issues/<project>/`](.scratch/issues/) (scoped per project). Issue file bodies (`*.md`) are gitignored; see [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
 
 ## Agent entry
 

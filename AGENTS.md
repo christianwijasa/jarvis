@@ -20,18 +20,18 @@ Repos clone to `$PERSONAL_PROJECTS_ROOT/<name>` (default `~/projects/<name>`).
 
 ## Domain docs
 
-[`docs/agents/domain.md`](docs/agents/domain.md) — `CONTEXT.md`, `docs/adr/`, `docs/plans/<slug>/`.
+[`docs/agents/domain.md`](docs/agents/domain.md) — `CONTEXT.md`, `docs/adr/<project>/`, `docs/plans/<slug>/`.
 
 ## Issue tracker
 
-[`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) — local scratch under `.scratch/issues/`.
+[`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) — local scratch under `.scratch/issues/<project>/`.
 
 ## Grill (Matt Pocock)
 
 | Invoke | Load | Writes |
 |--------|------|--------|
 | `/grill-me` | **grilling** (`~/.agents/skills/`) | nothing |
-| `/grill-with-docs` | **grilling** + **domain-modeling**; in this hub follow [`.agents/skills/grill-with-docs/SKILL.md`](.agents/skills/grill-with-docs/SKILL.md) | `CONTEXT.md`, `docs/adr/`, optional `docs/plans/<slug>/design.md` |
+| `/grill-with-docs` | **grilling** + **domain-modeling**; in this hub follow [`.agents/skills/grill-with-docs/SKILL.md`](.agents/skills/grill-with-docs/SKILL.md) | `CONTEXT.md`, `docs/adr/<project>/`, optional `docs/plans/<slug>/design.md` |
 
 Start `/grill-me` in a fresh conversation for a loose idea. Use `/grill-with-docs` when vocabulary and decisions should land in the repo.
 
