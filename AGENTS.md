@@ -1,6 +1,14 @@
-# Agent instructions — personal-hub
+# Agent instructions — jarvis
 
 Personal multi-repo hub: manifest, shared glossary, local scratch issues, Matt Pocock grill skills. Not BFI atlas — no TRD, no Jira, no agency commit format.
+
+Local path: **`~/projects/jarvis`**. Origin: **`fchr/jarvis`** (`https://origin.cursor.com/fchr/jarvis.git`).
+
+## Invoke: `jarvis …`
+
+User messages prefixed with **`jarvis`** (any case) are commands for this hub—not other “Jarvis” products.
+
+Grammar and verbs: [`.agents/rules/jarvis-invoke.mdc`](.agents/rules/jarvis-invoke.mdc). Examples: `jarvis analyze …`, `jarvis plan <slug>`, `jarvis track …`, `jarvis setup`.
 
 ## Workstation
 

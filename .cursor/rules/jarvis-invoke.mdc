@@ -1,0 +1,12 @@
+---
+description: "jarvis …" means this hub repo (fchr/jarvis)
+alwaysApply: true
+---
+
+# Jarvis invoke prefix
+
+When the user's message uses **`jarvis`** as a command prefix (case-insensitive), operate in **this repo** (`~/projects/jarvis`, Origin `fchr/jarvis`).
+
+Read [`AGENTS.md`](AGENTS.md) and [`docs/agents/`](docs/agents/) first. Use the manifest, sibling repos under `~/projects/`, and hub docs (`CONTEXT.md`, `docs/adr/`, `docs/plans/`, `.scratch/issues/`).
+
+Verb reference: [`.agents/rules/jarvis-invoke.mdc`](.agents/rules/jarvis-invoke.mdc).

@@ -1,0 +1,41 @@
+---
+description: Command grammar for "jarvis …" hub invocations
+alwaysApply: true
+---
+
+# Jarvis invoke
+
+**Jarvis** is this hub repo: local path `~/projects/jarvis`, Origin **`fchr/jarvis`**.
+
+## Prefix
+
+Messages that start with `jarvis` (any case), optionally followed by `:`, `,`, or `-`, then the command:
+
+- `jarvis analyze the auth flow in my-side-project`
+- `jarvis: plan billing-v2`
+- `jarvis track refactor login`
+
+Strip the prefix; execute the rest in hub mode.
+
+## Hub mode checklist
+
+1. [`AGENTS.md`](../../AGENTS.md) — workstation, grill, exclusions.
+2. [`docs/agents/domain.md`](../../docs/agents/domain.md) — glossary, ADRs, plans.
+3. [`docs/agents/issue-tracker.md`](../../docs/agents/issue-tracker.md) — scratch issues.
+4. [`workstation/repos.manifest`](../../workstation/repos.manifest) — which code repos exist; paths under `$PERSONAL_PROJECTS_ROOT` (default `~/projects/`).
+
+## Verbs
+
+| Verb | Meaning |
+|------|---------|
+| **analyze** *subject* | Investigate and summarize; read hub docs and relevant manifest repo code; answer what the codebase can answer without asking the user. |
+| **plan** *slug or topic* | Align with `docs/plans/<slug>/`; create `design.md` when missing; use `/grill-with-docs` when vocabulary or ADRs are unsettled. |
+| **track** *title or id* | Create or update `.scratch/issues/<id>-<slug>.md`; link `plan:` when a plan folder exists. |
+| **setup** | `make setup-status` or `make setup` from repo root. |
+| **grill** / **grill-with-docs** | Follow grill table in `AGENTS.md` and [`.agents/skills/grill-with-docs/SKILL.md`](../skills/grill-with-docs/SKILL.md). |
+
+Any other remainder after `jarvis` is a normal user request scoped to the hub and its manifest repos.
+
+## Not Jarvis
+
+Do not assume Iron Man, voice UI, or other products unless the user explicitly redirects.

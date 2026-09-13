@@ -1,6 +1,6 @@
 # Domain docs
 
-How agent skills use domain documentation in **personal-hub** and the repos listed in the manifest.
+How agent skills use domain documentation in **jarvis** and the repos listed in the manifest.
 
 ## Before exploring, read these
 
@@ -15,7 +15,7 @@ If `CONTEXT.md` or `docs/adr/` do not exist yet, proceed silently. The domain-mo
 Single-context layout (this hub):
 
 ```
-personal-hub/
+jarvis/
 ├── CONTEXT.md              ← glossary
 ├── docs/
 │   ├── adr/                ← 0001-slug.md, …

@@ -2,12 +2,12 @@
 name: grill-with-docs
 description: >-
   Interview to sharpen a plan and domain language; writes CONTEXT.md and
-  docs/adr/ as terms and decisions resolve. Personal-hub variant — no TRD/Jira.
+  docs/adr/ as terms and decisions resolve. Jarvis hub variant — no TRD/Jira.
   Based on https://www.aihero.dev/grill-with-docs — config via docs/agents/.
 disable-model-invocation: true
 ---
 
-# Grill with docs (personal-hub)
+# Grill with docs (jarvis)
 
 Stateful grilling: vocabulary lands in `CONTEXT.md` as it resolves; durable decisions land in `docs/adr/`. Optional summary in `docs/plans/<slug>/design.md`.
 

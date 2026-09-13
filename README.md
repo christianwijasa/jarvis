@@ -1,6 +1,6 @@
-# personal-hub
+# jarvis
 
-Personal multi-repo hub: manifest-driven clones under `~/projects/`, shared glossary (`CONTEXT.md`), and Matt Pocock grill skills (no TRD/Jira).
+Personal multi-repo hub (Origin: `fchr/jarvis`): manifest-driven clones under `~/projects/`, shared glossary (`CONTEXT.md`), and Matt Pocock grill skills (no TRD/Jira).
 
 ## Quick start
 
