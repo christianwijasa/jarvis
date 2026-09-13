@@ -1,0 +1,4 @@
+# Scratch issue bodies stay local; layout is committed via .gitkeep
+.scratch/issues/*.md
+
+.DS_Store

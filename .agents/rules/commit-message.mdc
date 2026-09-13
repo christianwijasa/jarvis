@@ -1,0 +1,13 @@
+---
+description: Personal hub commit message format for manifest repos
+globs:
+alwaysApply: false
+---
+
+# Commit messages (personal projects)
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+- Subject: `feat(scope): short imperative summary` or `fix(scope): …`, `docs:`, `chore:`, etc.
+- No Jira/bracket ticket IDs unless the target repo uses them.
+- Body optional; include when the why is not obvious from the subject.

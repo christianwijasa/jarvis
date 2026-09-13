@@ -1,0 +1,6 @@
+# Personal source repos — paths resolve under $PERSONAL_PROJECTS_ROOT (default ~/projects).
+# Format: <repo-name> [branch] [remote-url-optional]
+#
+# Examples (uncomment and edit):
+# my-side-project
+# another-app main git@github.com:you/another-app.git
