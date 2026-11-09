@@ -1,0 +1,45 @@
+# Project settings for Atlas. This file stays in the working repo.
+# Design documents (TRDs) are not stored here; Atlas writes them into
+# the history repo configured below.
+
+jira:
+  site: https://example.atlassian.net
+  project: TEAM
+
+# Separate git repo that holds team TRD history.
+history:
+  path: ../atlas-history
+  # owner/name on GitHub, used when listing history-repo PRs
+  github: example/atlas-history
+
+# Local checkouts Atlas may mention in a TRD. Keys are short names.
+repos:
+  api: ../api
+  web: ../web
+
+# Review-tier defaults. rules stays a placeholder.
+tiers:
+  default: A
+  rules: []
+
+# Plan-execution and coverage gates. Skills read these instead of
+# hard-coded product names.
+gates:
+  test_case: true
+  test_data: true
+  backend_coverage_percent: 100
+  client_coverage_percent: 80
+
+# Active named project (group of repos). Files live under
+# $ATLAS_HOME/projects/<name>/project.yaml. Leave empty if unused.
+project: ""
+
+# Skills are optional. Canonical copies live in $ATLAS_HOME/skills
+# (default ~/.atlas/skills). scope: global | local | both.
+# local_dir is where agents in this repo look; Atlas links that
+# folder to the global install unless copy: true.
+skills:
+  scope: both
+  local_dir: .agents/skills
+  copy: false
+  installed: []

@@ -1,0 +1,6 @@
+/atlas
+/atlas.exe
+*.exe
+.DS_Store
+.atlas/
+.agents/

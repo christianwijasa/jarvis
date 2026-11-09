@@ -1,0 +1,254 @@
+# Provenance for Atlas skills and rules.
+# Source snapshot: bravo-agency-atlas main 6b267df, imported via
+# import/old-hub-snapshot (aa6dad4) old-hub/. This file is the registry
+# `atlas skills upstream` reads. It never auto-applies updates.
+
+source:
+  hub_repo: https://github.com/christianwijasabfi/bravo-agency-atlas
+  hub_commit: 6b267df
+  snapshot_branch: import/old-hub-snapshot
+  snapshot_commit: aa6dad4
+
+entries:
+  - name: trd-pr-planning
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Scaffold or find a TRD in the history repo."
+    local_path: skills/trd-pr-planning/SKILL.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Atlas-written in the hub. No UPSTREAM.md or skills-lock row. De-BFI'd: history.path and repos from atlas.yaml; removed bot names and bfi-finance URLs."
+
+  - name: grilling
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Interview rounds until shared understanding."
+    local_path: skills/grilling/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/mattpocock/skills
+    upstream_path: skills/productivity/grilling/SKILL.md
+    pinned_commit: 49dd158d1076134a641b33efb035946536778336
+    licence: MIT
+    note: "Taken 'yes accepts recommended answer' line (hub UPSTREAM.md). Kept Atlas rounds, frontier, and diagram-the-gaps. Dropped hub diagram-design pointer."
+
+  - name: grill-with-docs
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Grill before writing a new TRD file."
+    local_path: skills/grill-with-docs/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/mattpocock/skills
+    upstream_path: skills/engineering/grill-with-docs/SKILL.md
+    pinned_commit: 49dd158d1076134a641b33efb035946536778336
+    licence: MIT
+    note: "AI Hero grill-with-docs. Hub UPSTREAM.md skipped later grill-with-docs upstream edits on purpose. Config via atlas.yaml / history repo, not docs/agents."
+
+  - name: domain-modeling
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Glossary and ADRs in the history repo."
+    local_path: skills/domain-modeling/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/mattpocock/skills
+    upstream_path: skills/engineering/domain-modeling/SKILL.md
+    pinned_commit: 49dd158d1076134a641b33efb035946536778336
+    licence: MIT
+    note: "Hub skipped upstream CONTEXT→GLOSSARY rename. Files live in history.path."
+
+  - name: test-case-design
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Write TRD-Testing.md for local checks."
+    local_path: skills/test-case-design/SKILL.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Atlas-written. No upstream row. BFI QA/Zephyr/BAE-T/GenFi examples removed; method kept. Bruno skill not imported; HTTP examples use curl."
+
+  - name: development
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Karpathy + Ponytail implementation loop."
+    local_path: skills/development/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/obra/superpowers
+    upstream_path: skills/verification-before-completion/SKILL.md
+    pinned_commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
+    licence: MIT
+    note: "Evidence-before-done and test-first from superpowers; ponytail shortcut line from DietrichGebert/ponytail 09c434a; test-first red diff line from mattpocock/skills 49dd158. Repos and coverage percents from atlas.yaml. Skipped workstation, LORA, Codacy, bot names."
+
+  - name: debugging
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Reproduce, trace the root cause, then fix."
+    local_path: skills/debugging/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/obra/superpowers
+    upstream_path: skills/systematic-debugging/SKILL.md
+    pinned_commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
+    licence: MIT
+    note: "Rewritten for a generic Java/Go/Flutter stack. Removed LORA workers, DBX/lora-temporal MCP, GAR library names, BFI hop lists."
+
+  - name: code-review
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Standards + Spec review of a diff or PR."
+    local_path: skills/code-review/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/mattpocock/skills
+    upstream_path: skills/engineering/code-review/SKILL.md
+    pinned_commit: 49dd158d1076134a641b33efb035946536778336
+    licence: MIT
+    note: "§3 standards-doc search from mattpocock #1208. ponytail-review from DietrichGebert/ponytail 1b1a0c5/09c434a. receiving-code-review from obra/superpowers bb92a77. Removed Lawliet/Senku/christianwijasabfi GitHub-post exception and bfi-finance hub repo. Spec refresh uses history.path."
+
+  - name: generate-pr-description
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Short PR body from the git diff."
+    local_path: skills/generate-pr-description/SKILL.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Atlas-written. No upstream row. Jira and TRD links from atlas.yaml; dropped bfi-finance blob URLs and atlas-review/Grok label steps."
+
+  - name: graphify
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Query a code graph to keep context small."
+    local_path: skills/graphify/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/Graphify-Labs/graphify
+    upstream_path: graphify/skill.md
+    pinned_commit: 961b78e57a10e9c5bb98421ff3e45b40be73542b
+    licence: MIT
+    note: "Sponsor link is github.com/sponsors/safishamsi; that user redirects to Graphify-Labs/graphify. Pin is tag v0.9.15 matching old-hub .graphify_version (annotated tag object bc23aec, commit 961b78e). LICENSE at that tag is MIT (Safi Shamsi); current default branch may differ. Stripped hub Makefile/agency-query BFI layer. Atlas-adapted: prefer the active Atlas project's combined graph ($ATLAS_HOME/projects/<name>/graphify-out) over a repo-local graphify-out when atlas.yaml sets project:."
+
+  - name: archify
+    kind: skill
+    pack: recommended
+    recommended: true
+    summary: "Architecture diagrams (fetched at install from pin v3.2.0)."
+    local_path: ""
+    mode: vendored
+    upstream_repo: https://github.com/tt-a1i/archify
+    upstream_path: archify/
+    pinned_commit: 208acba8d412335185b2056fedf54b3405df43fb
+    pinned_tag: v3.2.0
+    licence: Apache-2.0
+    note: "Tag v3.2.0 (annotated tag e62275b, commit 208acba). Not stored in this repo; atlas skills install fetches archify/ at the pinned commit into $ATLAS_HOME/skills (default ~/.atlas/skills). Tag tree LICENSE/SKILL.md still say MIT; upstream main is Apache-2.0. LICENSE texts live in LICENSES/."
+
+  - name: plain-english
+    kind: rule
+    pack: core
+    local_path: rules/plain-english.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Based on ASD-STE100 Issue 9 (do not vendor). Removed 'chat replies to Christian'."
+
+  - name: markdown-format
+    kind: rule
+    pack: core
+    local_path: rules/markdown-format.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Hub Prettier/make prettify/hooks rewritten to 'match the target repo'."
+
+  - name: commit-message
+    kind: rule
+    pack: core
+    local_path: rules/commit-message.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Repos from atlas.yaml. Example keys TEAM-* not BAE-*."
+
+  - name: branch-naming
+    kind: rule
+    pack: core
+    local_path: rules/branch-naming.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Default project from atlas.yaml jira.project. Dropped links to atlas-* rules."
+
+  - name: karpathy-guidelines
+    kind: rule
+    pack: core
+    local_path: rules/karpathy-guidelines.md
+    mode: adapted
+    upstream_repo: https://github.com/multica-ai/andrej-karpathy-skills
+    upstream_path: skills/karpathy-guidelines/SKILL.md
+    pinned_commit: 2c606141936f1eeef17fa3043a72095b4765b9c2
+    licence: unknown
+    note: "Pin is current main 2c606141936f1eeef17fa3043a72095b4765b9c2 (path last touched at 64723a49). Licence unknown: the upstream repo has no LICENSE file. Atlas ponytail pairing line kept from the hub."
+
+  - name: ponytail
+    kind: rule
+    pack: core
+    local_path: rules/ponytail.md
+    mode: adapted
+    upstream_repo: https://github.com/DietrichGebert/ponytail
+    upstream_path: AGENTS.md
+    pinned_commit: 09c434ab73ca43761c5d8b0c5d341926c2fba710
+    licence: MIT
+    note: "Rule text only (adapted from AGENTS.md). Do not vendor plugins, hooks/band/*, package.json, or other executable code. Hub UPSTREAM.md: corner-cut comment, list every place, moved-code error handling, keep layers; skipped Ponytail 5 closing line and shortcut: rename. Upstream HEAD is 96608e078b2d5ea607c5c3b8b5a54d1c1fba6846; tag v5.3.3 is 7801d061243d7b753bad0e0b3c057cd250b11755. 09c434a..96608e0 is 6 commits, mostly plugin manifests and hooks, not yet reviewed for adoption."
+
+  - name: plan-execution-test-case-guard
+    kind: rule
+    pack: core
+    local_path: rules/plan-execution-test-case-guard.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Hub agency/LORA profile flags replaced with atlas.yaml gates.test_case. Removed Kurisu/Lawliet/Christian."
+
+  - name: plan-execution-test-data-guard
+    kind: rule
+    pack: core
+    local_path: rules/plan-execution-test-data-guard.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "gates.test_data from atlas.yaml. Removed agency env keys, DBX MCP, LORA skip."
+
+  - name: graph-first-analysis
+    kind: rule
+    pack: core
+    local_path: rules/graph-first-analysis.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Dropped BFI business-layer node IDs and atlas-nav.py. Prefer the active Atlas project graph, else repo graphify-out/. Points at core graphify skill."
