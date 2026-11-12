@@ -23,10 +23,13 @@ agent, or chat product. Original and adapted skill text is shipped inside the
 binary. Vendored upstream trees (archify) are **not** stored in this repo;
 they are fetched at the pinned commit when you install them.
 
-Releases are **git tags** (for example `v0.1.0`). `atlas update` will install
-the latest tag, not the latest commit on `main`. This pass does not create
-tags. Network is used only for `atlas skills upstream` (read-only) and for
-installing a vendored skill at its pin.
+Releases are **git tags** (for example `v0.1.0`). Pushing a `v*` tag runs
+GitHub Actions, which attaches `atlas-<os>-<arch>` binaries and
+`SHA256SUMS`. `atlas update` installs that latest tag (never `main`).
+Needs `gh` on PATH. First install can still be `make build` and a copy
+onto PATH; after a tagged release exists, `atlas update` replaces the
+running binary. Network is also used for `atlas skills upstream`
+(read-only) and for installing a vendored skill at its pin.
 
 ## Skills
 
@@ -166,7 +169,10 @@ atlas project status shop --json
 then `merge-graphs … --out …/graphify-out/graph.json`. That keeps
 `graphify-out/` **out of member checkouts**. `merge-graphs` prefixes node
 ids with the repo name (`parent.parent` of each extract `graph.json`).
-Need `graphify` on PATH (`atlas doctor` checks it).
+Need `graphify` on PATH (`atlas doctor` checks it). Progress
+(`extract i/n <repo>`, `merge n graphs`) and live graphify logs go to
+stderr; there is no GUI. Success is one stdout line with the combined
+graph path.
 
 When `atlas.yaml` has `project: shop`, agents should `graphify query`
 against the **project** graph before reading files across repos.
@@ -181,7 +187,7 @@ so it is cheap to rename, split, or drop.
 | `atlas help` / `atlas <cmd> --help` | Human help (purpose, usage, flags, examples). |
 | `atlas help --agent` / `atlas agent-help` | Compact markdown guide for AI agents. |
 | `atlas version` | CLI version, skill-pack version, config path. `--json`. |
-| `atlas update` | Explains tagged-release update. |
+| `atlas update` | Latest GitHub Release tag (not `main`). `--check`, `--json`. |
 | `atlas plan <JIRA-KEY>` | Would scaffold a TRD using `trd-pr-planning` into `history.path`. No model or Jira API. |
 | `atlas skills` | Installed vs available, with global/local paths. `--json`. |
 | `atlas skills show <name>` | Prints an installed or bundled skill (how agents load a skill). `--json`. |
@@ -230,9 +236,16 @@ go test ./...
 ```
 
 The CLI version string is `dev` unless you pass `-ldflags` (or
-`make build VERSION=v0.1.0`).
+`make build VERSION=v0.1.0`). A `dev` binary is never treated as
+already up to date: `atlas update` still fetches the latest tag.
 
-GitHub Actions on this repo runs `go build ./...` and `go test ./...`.
+GitHub Actions on this repo runs `go build ./...` and `go test ./...`
+on pull requests. Pushing a `v*` tag publishes GitHub Release assets.
+
+```bash
+atlas update --check   # current vs latest; no download
+atlas update           # replace this binary
+```
 
 ## Layout
 
@@ -243,6 +256,7 @@ internal/doctor/     path checks (git, gh, graphify, skill links)
 internal/install/    fetch-at-pin, global install, local symlink/copy
 internal/upstream/   registry + read-only check
 internal/buildinfo/  CLI version set at build time
+internal/update/     atlas update from GitHub Releases
 skills/              bundled original/adapted skills (embedded)
 rules/               core rules
 templates/           TRD template stub

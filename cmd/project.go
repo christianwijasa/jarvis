@@ -469,7 +469,10 @@ func newProjectGraphCmd() *cobra.Command {
 extract --out keeps graphify-out out of member checkouts. merge-graphs
 prefixes node ids with the repo name (parent.parent of each graph.json).
 --update re-runs extract (incremental if a previous extract exists).
---repos a,b limits which members are extracted and merged.`,
+--repos a,b limits which members are extracted and merged.
+
+Progress (extract i/n <repo>, merge n graphs) and live graphify logs go
+to stderr. Success is one stdout line with the combined graph path.`,
 		Example: `  atlas project graph shop
   atlas project graph shop --update --repos cart-service,payment-service`,
 		Args: cobra.ExactArgs(1),
@@ -487,6 +490,9 @@ prefixes node ids with the repo name (parent.parent of each graph.json).
 					}
 				}
 			}
+			old := project.Progress
+			project.Progress = cmd.ErrOrStderr()
+			defer func() { project.Progress = old }()
 			res, err := project.BuildGraph(p, filter, update)
 			if err != nil {
 				return err

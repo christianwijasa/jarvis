@@ -98,7 +98,7 @@ func printAgentHelp(cmd *cobra.Command, asJSON bool) error {
 		Markdown:         md,
 		Workflow:         []string{"help --agent", "init", "doctor", "skills", "skills show", "project current", "project graph", "plan"},
 		ExitCodes:        []exitCode{{"0", "success"}, {"1", "error"}},
-		NonInteractive:   []string{"--yes", "--recommended", "--skills", "--scope", "--copy", "--local-dir", "--agents-md", "--project", "--json", "--agent", "--repo", "--update", "--repos", "--fetch"},
+		NonInteractive:   []string{"--yes", "--recommended", "--skills", "--scope", "--copy", "--local-dir", "--agents-md", "--project", "--json", "--agent", "--repo", "--update", "--repos", "--fetch", "--check"},
 		LoadSkill:        "atlas skills show <name>",
 		AtlasHomeDefault: "~/.atlas",
 	})

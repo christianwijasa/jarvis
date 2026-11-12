@@ -3,31 +3,80 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/christianwijasabfi/atlas/internal/buildinfo"
+	"github.com/christianwijasabfi/atlas/internal/update"
 	"github.com/spf13/cobra"
 )
 
-func newUpdateCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "update",
-		Short: "Update Atlas to the latest tagged release (not yet implemented)",
-		Long: `When implemented, replace the current binary with the latest git tag
-(for example v0.1.0). It will not follow the main branch.
+var applyUpdate = func(opts update.Options) (update.Result, error) {
+	var c update.Client
+	return c.Apply(opts)
+}
 
-No network calls in this skeleton. Does not prompt.`,
-		Example: `  atlas update`,
-		Args:    cobra.NoArgs,
+func newUpdateCmd() *cobra.Command {
+	var asJSON, check bool
+	var repo string
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "Replace this binary with the latest tagged GitHub Release",
+		Long: `Download the latest git tag from GitHub Releases (never main) and
+replace the running atlas binary.
+
+Needs gh on PATH. Asset names are atlas-<os>-<arch>. Checksums are
+verified when SHA256SUMS is attached to the release.
+
+--check prints current vs latest and downloads nothing.
+Does not prompt. Progress goes to stderr.`,
+		Example: `  atlas update
+  atlas update --check
+  atlas update --json`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			fmt.Fprint(cmd.OutOrStdout(), updateMessage)
+			opts := update.Options{
+				Repo:     repo,
+				Check:    check,
+				Current:  buildinfo.Version,
+				Progress: cmd.ErrOrStderr(),
+			}
+			res, err := applyUpdate(opts)
+			if err != nil {
+				return err
+			}
+			if asJSON {
+				return writeJSON(cmd.OutOrStdout(), updateJSON{
+					SchemaVersion: SchemaVersion,
+					Kind:          "update",
+					Current:       res.Current,
+					Latest:        res.Latest,
+					Updated:       res.Updated,
+					Path:          res.Path,
+					Check:         res.Check,
+				})
+			}
+			if check {
+				fmt.Fprintf(cmd.OutOrStdout(), "current: %s\nlatest:  %s\npath:    %s\n", res.Current, res.Latest, res.Path)
+				return nil
+			}
+			if res.Updated {
+				fmt.Fprintf(cmd.OutOrStdout(), "installed %s to %s\n", res.Latest, res.Path)
+				return nil
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "already %s\n", res.Latest)
 			return nil
 		},
 	}
+	addJSONFlag(cmd, &asJSON)
+	cmd.Flags().BoolVar(&check, "check", false, "print current vs latest tag; do not download")
+	cmd.Flags().StringVar(&repo, "repo", update.DefaultRepo, "GitHub owner/name of the atlas CLI")
+	return cmd
 }
 
-const updateMessage = `atlas update is not implemented yet.
-
-When it is, this command will replace the current binary with the latest
-tagged release. It will not follow the main branch. Releases are version
-tags (for example v0.1.0), so a team can pin and roll forward on purpose.
-
-No network calls are made in this skeleton.
-`
+type updateJSON struct {
+	SchemaVersion string `json:"schema_version"`
+	Kind          string `json:"kind"`
+	Current       string `json:"current"`
+	Latest        string `json:"latest"`
+	Updated       bool   `json:"updated"`
+	Path          string `json:"path"`
+	Check         bool   `json:"check,omitempty"`
+}

@@ -55,9 +55,9 @@ Rules: shipped under `rules/` in the Atlas CLI repo, not installed per project.
 | `atlas skills remove <name>` | Uninstall | Needs `atlas.yaml` |
 | `atlas skills upstream` | Read-only pin vs latest | `--json`; never applies updates |
 | `atlas plan <JIRA-KEY>` | Scaffold TRD via `trd-pr-planning` | Stub; no model/Jira |
-| `atlas update` | Latest **tag**, not main | Stub; no network |
+| `atlas update` | Latest **tag**, not main | needs `gh`; `--check` / `--json`; never follows `main` |
 | `atlas project list` / `show` / `current` / `graph-path` / `status` | Named repo groups and graph location | `--json` on these reads |
-| `atlas project graph <name>` | Build combined graphify graph | needs `graphify` on PATH |
+| `atlas project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; stderr: `extract i/n <repo>` and live graphify logs |
 | `atlas project create` / `add-repo` / `clone` / `use` / `delete` | Mutate project yaml | delete needs `--yes` off TTY; create name is an arg |
 
 ## How to load a skill
@@ -81,7 +81,7 @@ atlas project show shop --json          # includes graph_json and repos[].path
 atlas project graph-path shop --json
 ```
 
-When an active project has a graph, **query that graph first** (for example `graphify query "..." ` with the project's graph path/cwd) before reading files across repos. Build/refresh with `atlas project graph shop`. Output is `$ATLAS_HOME/projects/<name>/graphify-out/` (not inside member checkouts). Atlas uses graphify v0.9.15 `extract --out` per repo then `merge-graphs` (node ids prefixed with the repo name).
+When an active project has a graph, **query that graph first** (for example `graphify query "..." ` with the project's graph path/cwd) before reading files across repos. Build/refresh with `atlas project graph shop`. It prints `extract i/n <repo>` and `merge n graphs` on stderr and streams graphify logs (no GUI). Output is `$ATLAS_HOME/projects/<name>/graphify-out/` (not inside member checkouts). Atlas uses graphify v0.9.15 `extract --out` per repo then `merge-graphs` (node ids prefixed with the repo name).
 
 Per-repo `graphify-out/` is only for a repo that is **not** in an active project.
 
@@ -128,6 +128,7 @@ Every JSON document has `"schema_version": "atlas.cli/v1"` and a `"kind"` string
 | `project_current` | `atlas project current --json` |
 | `project_status` | `atlas project status --json <name>` |
 | `project_graph_path` | `atlas project graph-path --json <name>` |
+| `update` | `atlas update --json` |
 
 Unknown `schema_version` means the agent should not guess the rest of the shape.
 

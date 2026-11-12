@@ -1,9 +1,9 @@
 package project
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,24 +11,36 @@ import (
 	"time"
 )
 
+// Progress receives extract i/n and merge lines plus streamed graphify logs.
+// Defaults to stderr. Tests replace this.
+var Progress io.Writer = os.Stderr
+
+func progressWriter() io.Writer {
+	if Progress != nil {
+		return Progress
+	}
+	return os.Stderr
+}
+
+func writeProgress(format string, args ...any) {
+	fmt.Fprintf(progressWriter(), format, args...)
+}
+
 // GraphifyRun shells out to the graphify binary. Tests replace this.
-var GraphifyRun = func(args ...string) ([]byte, error) {
+// stdout and stderr are streamed to Progress so a hang is visible.
+var GraphifyRun = func(args ...string) error {
 	path, err := exec.LookPath("graphify")
 	if err != nil {
-		return nil, fmt.Errorf("graphify is not on PATH; install the graphify CLI (atlas doctor checks this)")
+		return fmt.Errorf("graphify is not on PATH; install the graphify CLI (atlas doctor checks this)")
 	}
 	cmd := exec.Command(path, args...)
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	out, err := cmd.Output()
-	if err != nil {
-		msg := strings.TrimSpace(stderr.String())
-		if msg == "" {
-			msg = err.Error()
-		}
-		return out, fmt.Errorf("graphify %s: %s", strings.Join(args, " "), msg)
+	out := progressWriter()
+	cmd.Stdout = out
+	cmd.Stderr = out
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("graphify %s: %w", strings.Join(args, " "), err)
 	}
-	return bytes.TrimSpace(out), nil
+	return nil
 }
 
 type GraphBuildResult struct {
@@ -61,7 +73,8 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 	}
 
 	var graphFiles []string
-	for _, r := range selected {
+	n := len(selected)
+	for i, r := range selected {
 		abs := p.AbsRepoPath(r)
 		if abs == "" {
 			return res, fmt.Errorf("repo %s has no local path; clone or set --path", r.Name)
@@ -81,8 +94,9 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 			// extract is incremental when graph.json+manifest exist in --out
 			_ = update
 		}
-		if _, err := GraphifyRun(args...); err != nil {
-			return res, err
+		writeProgress("extract %d/%d %s\n", i+1, n, r.Name)
+		if err := GraphifyRun(args...); err != nil {
+			return res, fmt.Errorf("extract %s (%d/%d): %w", r.Name, i+1, n, err)
 		}
 		res.Extracts = append(res.Extracts, strings.Join(args, " "))
 		res.Repos = append(res.Repos, r.Name)
@@ -101,8 +115,9 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 		}
 		args := append([]string{"merge-graphs"}, graphFiles...)
 		args = append(args, "--out", graphJSON)
-		if _, err := GraphifyRun(args...); err != nil {
-			return res, err
+		writeProgress("merge %d graphs\n", n)
+		if err := GraphifyRun(args...); err != nil {
+			return res, fmt.Errorf("merge %d graphs: %w", n, err)
 		}
 		res.MergeArgs = args
 	}

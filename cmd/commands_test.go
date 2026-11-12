@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/christianwijasabfi/atlas/internal/buildinfo"
 	"github.com/christianwijasabfi/atlas/internal/config"
 	"github.com/christianwijasabfi/atlas/internal/install"
+	"github.com/christianwijasabfi/atlas/internal/update"
 	"github.com/christianwijasabfi/atlas/internal/upstream"
 )
 
@@ -76,13 +78,34 @@ func TestVersionOutput(t *testing.T) {
 	}
 }
 
-func TestUpdatePlaceholder(t *testing.T) {
-	out, err := execute(t, "update")
+func TestUpdateJSONSchema(t *testing.T) {
+	old := applyUpdate
+	t.Cleanup(func() { applyUpdate = old })
+	applyUpdate = func(opts update.Options) (update.Result, error) {
+		return update.Result{
+			Current: "dev",
+			Latest:  "v0.1.0",
+			Updated: false,
+			Path:    "/tmp/atlas",
+			Check:   opts.Check,
+		}, nil
+	}
+	out, err := execute(t, "update", "--check", "--json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out, "tagged release") {
-		t.Fatalf("expected tagged-release note, got:\n%s", out)
+	var got map[string]any
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got["schema_version"] != SchemaVersion || got["kind"] != "update" {
+		t.Fatalf("%v", got)
+	}
+	if got["current"] != "dev" || got["latest"] != "v0.1.0" || got["path"] != "/tmp/atlas" {
+		t.Fatalf("%v", got)
+	}
+	if got["updated"] != false {
+		t.Fatalf("updated %v", got["updated"])
 	}
 }
 
