@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/christianwijasabfi/atlas/internal/buildinfo"
+	"github.com/christianwijasa/jarvis/internal/buildinfo"
 )
 
 func TestHumanHelpHasPurposeUsageFlagsExamples(t *testing.T) {
@@ -14,7 +14,7 @@ func TestHumanHelpHasPurposeUsageFlagsExamples(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, need := range []string{"Atlas is a small", "Usage:", "Available Commands:", "atlas help --agent", "Examples:"} {
+	for _, need := range []string{"Jarvis is a small", "Usage:", "Available Commands:", "jarvis help --agent", "Examples:"} {
 		if !strings.Contains(root, need) {
 			t.Errorf("root help missing %q\n%s", need, root)
 		}
@@ -81,10 +81,10 @@ func TestAgentHelpJSONGolden(t *testing.T) {
 	if got.SchemaVersion != SchemaVersion || got.Kind != "agent_help" {
 		t.Fatalf("schema %q kind %q", got.SchemaVersion, got.Kind)
 	}
-	if !strings.Contains(got.Markdown, "atlas skills show") {
+	if !strings.Contains(got.Markdown, "jarvis skills show") {
 		t.Fatal("markdown missing load-skill instruction")
 	}
-	if got.LoadSkill != "atlas skills show <name>" {
+	if got.LoadSkill != "jarvis skills show <name>" {
 		t.Fatalf("load_skill %q", got.LoadSkill)
 	}
 }
@@ -117,7 +117,7 @@ func TestVersionJSONSchema(t *testing.T) {
 }
 
 func TestSkillsJSONSchema(t *testing.T) {
-	t.Setenv("ATLAS_HOME", t.TempDir())
+	t.Setenv("JARVIS_HOME", t.TempDir())
 	dir := t.TempDir()
 	wd, err := os.Getwd()
 	if err != nil {
@@ -180,7 +180,7 @@ func TestDoctorJSONSchema(t *testing.T) {
 	for _, c := range got.Checks {
 		names[c.Name] = true
 	}
-	for _, n := range []string{"git", "gh", "graphify", "atlas.yaml"} {
+	for _, n := range []string{"git", "gh", "graphify", "jarvis.yaml"} {
 		if !names[n] {
 			t.Errorf("missing check %s in %+v", n, got.Checks)
 		}

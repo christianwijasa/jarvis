@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/christianwijasabfi/atlas/internal/buildinfo"
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/install"
-	"github.com/christianwijasabfi/atlas/internal/update"
-	"github.com/christianwijasabfi/atlas/internal/upstream"
+	"github.com/christianwijasa/jarvis/internal/buildinfo"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/install"
+	"github.com/christianwijasa/jarvis/internal/update"
+	"github.com/christianwijasa/jarvis/internal/upstream"
 )
 
 func execute(t *testing.T, args ...string) (string, error) {
@@ -86,7 +86,7 @@ func TestUpdateJSONSchema(t *testing.T) {
 			Current: "dev",
 			Latest:  "v0.1.0",
 			Updated: false,
-			Path:    "/tmp/atlas",
+			Path:    "/tmp/jarvis",
 			Check:   opts.Check,
 		}, nil
 	}
@@ -101,7 +101,7 @@ func TestUpdateJSONSchema(t *testing.T) {
 	if got["schema_version"] != SchemaVersion || got["kind"] != "update" {
 		t.Fatalf("%v", got)
 	}
-	if got["current"] != "dev" || got["latest"] != "v0.1.0" || got["path"] != "/tmp/atlas" {
+	if got["current"] != "dev" || got["latest"] != "v0.1.0" || got["path"] != "/tmp/jarvis" {
 		t.Fatalf("%v", got)
 	}
 	if got["updated"] != false {
@@ -117,10 +117,10 @@ func TestPlanRequiresKey(t *testing.T) {
 }
 
 func TestPlanRequiresConfigAndScaffolds(t *testing.T) {
-	t.Setenv("ATLAS_HOME", t.TempDir())
+	t.Setenv("JARVIS_HOME", t.TempDir())
 	_, err := execute(t, "plan", "TEAM-123")
 	if err == nil {
-		t.Fatal("expected missing atlas.yaml")
+		t.Fatal("expected missing jarvis.yaml")
 	}
 
 	dir := t.TempDir()
@@ -175,7 +175,7 @@ func TestPlanRequiresConfigAndScaffolds(t *testing.T) {
 }
 
 func TestPlanUserSourceFromFile(t *testing.T) {
-	t.Setenv("ATLAS_HOME", t.TempDir())
+	t.Setenv("JARVIS_HOME", t.TempDir())
 	dir := t.TempDir()
 	wd, _ := os.Getwd()
 	defer os.Chdir(wd)
@@ -208,7 +208,7 @@ func TestPlanUserSourceFromFile(t *testing.T) {
 
 func TestSkillsListWithoutProject(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("ATLAS_HOME", filepath.Join(dir, "home"))
+	t.Setenv("JARVIS_HOME", filepath.Join(dir, "home"))
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -316,7 +316,7 @@ func (f fakeRemote) LatestCommit(repoURL, path string) (string, error) {
 
 func TestDoctorPrintsPassFailLines(t *testing.T) {
 	out, _ := execute(t, "doctor")
-	for _, tool := range []string{"git:", "gh:", "graphify:", "atlas.yaml:"} {
+	for _, tool := range []string{"git:", "gh:", "graphify:", "jarvis.yaml:"} {
 		if !strings.Contains(out, tool) {
 			t.Errorf("doctor missing line for %s\n%s", tool, out)
 		}
@@ -344,7 +344,7 @@ func TestInitRequiresFlagsWhenNotTTY(t *testing.T) {
 
 func TestInitRecommendedAndSkillsCommands(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	dir := t.TempDir()
 	wd, err := os.Getwd()
 	if err != nil {
@@ -438,7 +438,7 @@ func TestInitRecommendedAndSkillsCommands(t *testing.T) {
 
 func TestInitSkillsFlagAndInteractive(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	dir := t.TempDir()
 	wd, err := os.Getwd()
 	if err != nil {
@@ -486,7 +486,7 @@ func TestInitSkillsFlagAndInteractive(t *testing.T) {
 
 func TestInitCopyFlag(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	dir := t.TempDir()
 	wd, err := os.Getwd()
 	if err != nil {
@@ -512,7 +512,7 @@ func TestInitCopyFlag(t *testing.T) {
 
 func TestInitAgentsMDIdempotent(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	dir := t.TempDir()
 	wd, err := os.Getwd()
 	if err != nil {
@@ -538,10 +538,10 @@ func TestInitAgentsMDIdempotent(t *testing.T) {
 	if !strings.HasPrefix(s, "# Existing agents file") {
 		t.Fatalf("overwrote AGENTS.md:\n%s", s)
 	}
-	if !strings.Contains(s, agentsMarkBeg) || !strings.Contains(s, "atlas help --agent") {
+	if !strings.Contains(s, agentsMarkBeg) || !strings.Contains(s, "jarvis help --agent") {
 		t.Fatalf("missing marked block:\n%s", s)
 	}
-	// atlas.yaml exists; refresh block via upsert only
+	// jarvis.yaml exists; refresh block via upsert only
 	action, err := upsertAgentsMD("AGENTS.md")
 	if err != nil {
 		t.Fatal(err)

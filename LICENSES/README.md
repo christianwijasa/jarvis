@@ -1,6 +1,6 @@
 # Licences for adapted and vendored text
 
-Copied notices for content that is not original to Atlas. See
+Copied notices for content that is not original to Jarvis. See
 `upstream.yaml` for which skill or rule each notice covers.
 Archify’s renderer is not stored in this repo; install fetches the
 pinned tag. These licence files still apply.

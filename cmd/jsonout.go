@@ -9,7 +9,7 @@ import (
 
 // SchemaVersion is included in every --json payload so agents can
 // detect incompatible shapes.
-const SchemaVersion = "atlas.cli/v1"
+const SchemaVersion = "jarvis.cli/v1"
 
 func addJSONFlag(cmd *cobra.Command, p *bool) {
 	cmd.Flags().BoolVar(p, "json", false, "machine-readable JSON (schema_version "+SchemaVersion+")")

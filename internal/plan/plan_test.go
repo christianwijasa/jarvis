@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/project"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/project"
 )
 
 func TestValidateKey(t *testing.T) {
@@ -146,7 +146,7 @@ func TestFromFileAndUnknownRepo(t *testing.T) {
 
 func TestResolveTrackerPrefersProject(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	p := &project.Project{Name: "shop", Tracker: config.Tracker{Kind: "jira", Site: "https://proj.example"}}
 	if err := project.Save(p); err != nil {
 		t.Fatal(err)

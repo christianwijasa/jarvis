@@ -62,7 +62,7 @@ func TestLoadExample(t *testing.T) {
 
 func TestHomeDirEnvAndWrite(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	got, err := HomeDir(nil)
 	if err != nil || got != home {
 		t.Fatalf("HomeDir=%q err=%v", got, err)

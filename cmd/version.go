@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/christianwijasabfi/atlas/internal/buildinfo"
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/skills"
+	"github.com/christianwijasa/jarvis/internal/buildinfo"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/skills"
 	"github.com/spf13/cobra"
 )
 
@@ -15,11 +15,11 @@ func newVersionCmd() *cobra.Command {
 		Use:   "version",
 		Short: "Print CLI version, skill-pack version, and config path",
 		Long: `Print the binary version (set at build time with ldflags), the
-embedded skill-pack version, and the path of atlas.yaml if one is found.
+embedded skill-pack version, and the path of jarvis.yaml if one is found.
 
 Does not prompt. Safe for agents. Pass --json for a schema_version object.`,
-		Example: `  atlas version
-  atlas version --json`,
+		Example: `  jarvis version
+  jarvis version --json`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cfgPath := ""

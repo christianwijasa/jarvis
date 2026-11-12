@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/christianwijasabfi/atlas/internal/buildinfo"
-	"github.com/christianwijasabfi/atlas/internal/update"
+	"github.com/christianwijasa/jarvis/internal/buildinfo"
+	"github.com/christianwijasa/jarvis/internal/update"
 )
 
 func TestShouldNagSkipsAgentsAndDev(t *testing.T) {
@@ -83,7 +83,7 @@ func TestNagDeclineDoesNotApply(t *testing.T) {
 func TestNagSilentWhenDisablePrompt(t *testing.T) {
 	restore := stubNag(t, "v0.1.0", "v0.2.0")
 	defer restore()
-	t.Setenv("ATLAS_DISABLE_UPDATE_PROMPT", "1")
+	t.Setenv("JARVIS_DISABLE_UPDATE_PROMPT", "1")
 
 	applied := false
 	nagApply = func() (update.Result, error) {
@@ -108,7 +108,7 @@ func TestNagRespectsInterval(t *testing.T) {
 	restore := stubNag(t, "v0.1.0", "v0.2.0")
 	defer restore()
 
-	home := os.Getenv("ATLAS_HOME")
+	home := os.Getenv("JARVIS_HOME")
 	if err := update.WriteStamp(update.StampPath(home), nagNow()); err != nil {
 		t.Fatal(err)
 	}
@@ -141,11 +141,11 @@ func TestNagSkipsJSON(t *testing.T) {
 func stubNag(t *testing.T, current, latest string) func() {
 	t.Helper()
 	t.Setenv("CI", "")
-	t.Setenv("ATLAS_DISABLE_AUTO_UPDATE", "")
-	t.Setenv("ATLAS_DISABLE_UPDATE_PROMPT", "")
-	t.Setenv("ATLAS_UPDATE_DAYS", "13")
+	t.Setenv("JARVIS_DISABLE_AUTO_UPDATE", "")
+	t.Setenv("JARVIS_DISABLE_UPDATE_PROMPT", "")
+	t.Setenv("JARVIS_UPDATE_DAYS", "13")
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 
 	oldVer := buildinfo.Version
 	buildinfo.Version = current
@@ -183,7 +183,7 @@ func executeNag(t *testing.T, stdin io.Reader, args ...string) (string, error) {
 	return executeIn(t, stdin, args...)
 }
 
-func TestStampPathUsesAtlasHome(t *testing.T) {
+func TestStampPathUsesJarvisHome(t *testing.T) {
 	dir := t.TempDir()
 	if !strings.HasPrefix(update.StampPath(dir), dir) {
 		t.Fatal(update.StampPath(dir))

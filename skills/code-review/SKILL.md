@@ -6,7 +6,7 @@ description: >-
   pass: references/ponytail-review.md. Trigger: "code-review", a PR URL,
   or after implementation before opening a PR. Author side:
   references/receiving-code-review.md. Based on
-  https://www.aihero.dev/skills-code-review — Atlas uses TRDs in the
+  https://www.aihero.dev/skills-code-review — Jarvis uses TRDs in the
   history repo as the spec source.
 ---
 
@@ -26,7 +26,7 @@ supplies (or a GitHub PR's base…head):
 Both axes run as **parallel sub-agents** when the host supports them;
 this skill aggregates findings without merging or reranking axes.
 
-History repo path and Jira site come from `atlas.yaml`.
+History repo path and Jira site come from `jarvis.yaml`.
 
 ## Process
 
@@ -37,7 +37,7 @@ If the user pastes a GitHub PR URL or names an open PR:
 1. Parse `owner/repo` + PR number from the URL.
 2. Fetch metadata + diff via `gh` (do **not** require a local checkout of the PR branch).
 3. Fixed point = PR base branch. Pin the **reviewed head SHA**; every verdict applies to that SHA only.
-4. **Round** = number of distinct reviewed head SHAs. Rebuild the findings ledger from prior Atlas reviews (`## Atlas review` prefix). If the latest prior verdict is `APPROVE` and its `commit_id` ≠ head, that approval is **stale**; review at least `<approved-sha>..<head>`.
+4. **Round** = number of distinct reviewed head SHAs. Rebuild the findings ledger from prior Jarvis reviews (`## Jarvis review` prefix). If the latest prior verdict is `APPROVE` and its `commit_id` ≠ head, that approval is **stale**; review at least `<approved-sha>..<head>`.
 5. After aggregate, apply the **review-readiness gate**, then submit.
 
 Local/WIP review (no PR): skip submit.
@@ -69,7 +69,7 @@ single-repo plans keep it at `docs/plans/<KEY>/TRD-Implementation.md`.
 
 Never trust the local history checkout alone. Fetch (read-only; no
 pull, checkout or reset) and read plans from remote refs of the
-history repo (`atlas.yaml` `history.path`, and `history.github` when
+history repo (`jarvis.yaml` `history.path`, and `history.github` when
 set for `gh pr list`).
 
 **Refresh gate (no verdict on a stale history repo):** if fetch fails
@@ -105,8 +105,8 @@ Karpathy/Ponytail already apply globally.
 **Target repo standards:** search the pinned tree of the repo under
 review for every file that documents how code should be written. When
 `CONTRIBUTING.md` or `CODING_STANDARDS.md` exists, it must be on the
-list. Those docs add to the Atlas checklist and never relax a hub
-rule: a target repo cannot waive coverage gates from `atlas.yaml`,
+list. Those docs add to the Jarvis checklist and never relax a hub
+rule: a target repo cannot waive coverage gates from `jarvis.yaml`,
 the evidence rule, or `test-case-gate:` / `test-data-gate:`.
 
 **Optional — graph hint:** when the diff touches an integration
@@ -154,7 +154,7 @@ when those scripts exist; ask for TRD-Testing on Tier A when missing
 
 #### 5a. Findings ledger (re-review only)
 
-Carry **every** finding from prior Atlas reviews forward: Fixed, Open,
+Carry **every** finding from prior Jarvis reviews forward: Fixed, Open,
 or Withdrawn (reason and evidence required). An `Open` blocker keeps
 the verdict at `REQUEST_CHANGES`.
 
@@ -172,7 +172,7 @@ safety have no blockers → `APPROVE`; add one line under the verdict.
 
 Write the posted text in plain English: [plain-english](../../rules/plain-english.md).
 
-1. Opening line = verdict + blocker count: `## Atlas review: Request changes, 2 blockers.` or `## Atlas review: Approve.`
+1. Opening line = verdict + blocker count: `## Jarvis review: Request changes, 2 blockers.` or `## Jarvis review: Approve.`
 2. One numbered entry per blocker: `file:line`, what is wrong, the fix, and `Keep …`.
 3. Nits in a short separate list.
 4. Re-reviews show only what changed since the last round.
@@ -187,13 +187,13 @@ until a re-review.
 
 ### Same-head corrections
 
-When a prior Atlas review exists on the **same `commit_id`** and only
+When a prior Jarvis review exists on the **same `commit_id`** and only
 the review needs correcting, edit or dismiss-and-resubmit rather than
 posting another `REQUEST_CHANGES` that reads as an extra round.
 
 ## Multi-repo work
 
-When the branch spans repos in `atlas.yaml` `repos`, review each
+When the branch spans repos in `jarvis.yaml` `repos`, review each
 touched repo against the same TRD set. One aggregate report with
 per-repo subsections. For a single-repo PR URL, review that repo only.
 

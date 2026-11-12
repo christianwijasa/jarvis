@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/plan"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/plan"
 	"github.com/spf13/cobra"
 )
 
@@ -22,20 +22,20 @@ under history.path/docs/plans/<KEY>/.
 KEY is tracker-agnostic (Jira key, Trello card id, or any path-safe id).
 This command does not call a model or a tracker API. It does not prompt.
 
-If the active project (or atlas.yaml) has a tracker URL, MCP id, or token,
+If the active project (or jarvis.yaml) has a tracker URL, MCP id, or token,
 JSON source is "tracker" and agents should fetch the ticket via the host MCP.
 Otherwise source is "user" and agents use pasted markdown or --from.
 
 Existing TRD files are never overwritten.`,
-		Example: `  atlas plan TEAM-123
-  atlas plan TEAM-123 --repo api --tier A --json
-  atlas plan N-1 --from ./requirement.md`,
+		Example: `  jarvis plan TEAM-123
+  jarvis plan TEAM-123 --repo api --tier A --json
+  jarvis plan N-1 --from ./requirement.md`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key := args[0]
 			cfgPath, err := config.Find("")
 			if err != nil {
-				return fmt.Errorf("atlas.yaml not found; run atlas init")
+				return fmt.Errorf("jarvis.yaml not found; run jarvis init")
 			}
 			cfg, err := config.Load(cfgPath)
 			if err != nil {
@@ -98,8 +98,8 @@ Existing TRD files are never overwritten.`,
 		},
 	}
 	addJSONFlag(cmd, &asJSON)
-	cmd.Flags().StringArrayVar(&repos, "repo", nil, "repo name from atlas.yaml repos (repeatable)")
-	cmd.Flags().StringVar(&tier, "tier", "", "story tier A, B, or C (default from atlas.yaml)")
+	cmd.Flags().StringArrayVar(&repos, "repo", nil, "repo name from jarvis.yaml repos (repeatable)")
+	cmd.Flags().StringVar(&tier, "tier", "", "story tier A, B, or C (default from jarvis.yaml)")
 	cmd.Flags().StringVar(&from, "from", "", "copy a requirement file to REQUIREMENT.md")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "print paths without writing")
 	return cmd

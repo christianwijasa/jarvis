@@ -7,7 +7,7 @@ description: >-
 # Commit message (Jira-backed work)
 
 When **creating a commit** for work tracked in Jira — in any repo listed
-in `atlas.yaml` `repos` — use this **subject line** format:
+in `jarvis.yaml` `repos` — use this **subject line** format:
 
 ```text
 feat({topic}): [{jira-key}] {commit-message}

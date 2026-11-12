@@ -1,4 +1,4 @@
-# Atlas review — standards checklist (subagents)
+# Jarvis review — standards checklist (subagents)
 
 One-page Standards axis. Full workflow: [development/SKILL.md](../../development/SKILL.md).
 Karpathy/Ponytail are always-on rules.
@@ -11,7 +11,7 @@ Karpathy/Ponytail are always-on rules.
 
 ## Coverage gates
 
-Percents come from `atlas.yaml` `gates`. Blocker if changed logic lacks
+Percents come from `jarvis.yaml` `gates`. Blocker if changed logic lacks
 tests or misses the gate on non-excluded production files.
 
 ## Client apps (including Flutter)

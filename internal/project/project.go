@@ -8,13 +8,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
+	"github.com/christianwijasa/jarvis/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
 const (
 	FileName        = "project.yaml"
-	SchemaVersion   = "atlas.project/v1"
+	SchemaVersion   = "jarvis.project/v1"
 	DefaultGraphRel = "graphify-out"
 )
 
@@ -24,7 +24,7 @@ var (
 )
 
 // Project is a named group of repositories. Files live under
-// $ATLAS_HOME/projects/<name>/project.yaml.
+// $JARVIS_HOME/projects/<name>/project.yaml.
 type Project struct {
 	SchemaVersion string         `yaml:"schema_version" json:"schema_version"`
 	Name          string         `yaml:"name" json:"name"`
@@ -168,7 +168,7 @@ func Save(p *Project) error {
 		return err
 	}
 	var b strings.Builder
-	b.WriteString("# Atlas project: a named group of repositories.\n")
+	b.WriteString("# Jarvis project: a named group of repositories.\n")
 	enc := yaml.NewEncoder(&b)
 	enc.SetIndent(2)
 	if err := enc.Encode(p); err != nil {

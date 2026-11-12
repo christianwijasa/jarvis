@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/install"
-	"github.com/christianwijasabfi/atlas/internal/project"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/install"
+	"github.com/christianwijasa/jarvis/internal/project"
 )
 
 // Item is one doctor row.
@@ -36,14 +36,14 @@ func Collect(startDir string) Report {
 	path, err := config.Find(startDir)
 	if err != nil {
 		r.Checks = append(r.Checks, Item{
-			Name:   "atlas.yaml",
+			Name:   "jarvis.yaml",
 			OK:     false,
 			Detail: "not found in this directory or parents",
 		})
 		r.OK = allOK(r.Checks)
 		return r
 	}
-	r.Checks = append(r.Checks, Item{Name: "atlas.yaml", OK: true, Detail: path})
+	r.Checks = append(r.Checks, Item{Name: "jarvis.yaml", OK: true, Detail: path})
 
 	cfg, err := config.Load(path)
 	if err != nil {
@@ -53,9 +53,9 @@ func Collect(startDir string) Report {
 	}
 	home, err := config.HomeDir(cfg)
 	if err != nil {
-		r.Checks = append(r.Checks, Item{Name: "ATLAS_HOME", OK: false, Detail: err.Error()})
+		r.Checks = append(r.Checks, Item{Name: "JARVIS_HOME", OK: false, Detail: err.Error()})
 	} else {
-		r.Checks = append(r.Checks, Item{Name: "ATLAS_HOME", OK: true, Detail: home})
+		r.Checks = append(r.Checks, Item{Name: "JARVIS_HOME", OK: true, Detail: home})
 	}
 	problems := install.CheckLinks(cfg, filepath.Dir(path))
 	sk := Item{

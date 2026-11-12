@@ -11,10 +11,10 @@ import (
 // DefaultCheckIntervalDays matches oh-my-zsh's UPDATE_ZSH_DAYS default.
 const DefaultCheckIntervalDays = 13
 
-// StampName is the file under ATLAS_HOME that records the last network check.
+// StampName is the file under JARVIS_HOME that records the last network check.
 const StampName = "update-check"
 
-// StampPath is $ATLAS_HOME/update-check.
+// StampPath is $JARVIS_HOME/update-check.
 func StampPath(home string) string {
 	return filepath.Join(home, StampName)
 }

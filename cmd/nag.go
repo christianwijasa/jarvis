@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/christianwijasabfi/atlas/internal/buildinfo"
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/update"
+	"github.com/christianwijasa/jarvis/internal/buildinfo"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/update"
 	"github.com/spf13/cobra"
 )
 
@@ -72,14 +72,14 @@ func nagUpdateIfNeeded(cmd *cobra.Command) {
 	}
 
 	stderr := cmd.ErrOrStderr()
-	fmt.Fprintf(stderr, "[atlas] A newer version is available: %s → %s\n", res.Current, res.Latest)
+	fmt.Fprintf(stderr, "[jarvis] A newer version is available: %s → %s\n", res.Current, res.Latest)
 
-	if envTruthy("ATLAS_DISABLE_UPDATE_PROMPT") {
+	if envTruthy("JARVIS_DISABLE_UPDATE_PROMPT") {
 		runNagInstall(stderr)
 		return
 	}
 
-	fmt.Fprint(stderr, "[atlas] Would you like to update? [Y/n] ")
+	fmt.Fprint(stderr, "[jarvis] Would you like to update? [Y/n] ")
 	in := bufio.NewReader(cmd.InOrStdin())
 	line, err := in.ReadString('\n')
 	if err != nil && err != io.EOF {
@@ -90,22 +90,22 @@ func nagUpdateIfNeeded(cmd *cobra.Command) {
 	case "", "y", "yes":
 		runNagInstall(stderr)
 	default:
-		fmt.Fprintln(stderr, "[atlas] Skipping. Run atlas update later, or set ATLAS_DISABLE_AUTO_UPDATE=1.")
+		fmt.Fprintln(stderr, "[jarvis] Skipping. Run jarvis update later, or set JARVIS_DISABLE_AUTO_UPDATE=1.")
 	}
 }
 
 func runNagInstall(stderr io.Writer) {
 	res, err := nagApply()
 	if err != nil {
-		fmt.Fprintf(stderr, "[atlas] update failed: %v\n", err)
+		fmt.Fprintf(stderr, "[jarvis] update failed: %v\n", err)
 		return
 	}
 	if !res.Updated {
-		fmt.Fprintf(stderr, "[atlas] already %s\n", res.Latest)
+		fmt.Fprintf(stderr, "[jarvis] already %s\n", res.Latest)
 		return
 	}
 	if err := nagExecSelf(); err != nil {
-		fmt.Fprintf(stderr, "[atlas] installed %s; re-run atlas to use it\n", res.Latest)
+		fmt.Fprintf(stderr, "[jarvis] installed %s; re-run jarvis to use it\n", res.Latest)
 	}
 }
 
@@ -123,7 +123,7 @@ func shouldNag(cmd *cobra.Command) bool {
 	if f := cmd.Flags().Lookup("help"); f != nil && f.Changed {
 		return false
 	}
-	if envTruthy("ATLAS_DISABLE_AUTO_UPDATE") || envTruthy("CI") {
+	if envTruthy("JARVIS_DISABLE_AUTO_UPDATE") || envTruthy("CI") {
 		return false
 	}
 	if buildinfo.Version == "dev" {
@@ -142,7 +142,7 @@ func wantsJSON(cmd *cobra.Command) bool {
 }
 
 func nagIntervalDays() int {
-	raw := strings.TrimSpace(os.Getenv("ATLAS_UPDATE_DAYS"))
+	raw := strings.TrimSpace(os.Getenv("JARVIS_UPDATE_DAYS"))
 	if raw == "" {
 		return update.DefaultCheckIntervalDays
 	}

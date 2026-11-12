@@ -1,6 +1,6 @@
-/atlas
-/atlas.exe
+/jarvis
+/jarvis.exe
 *.exe
 .DS_Store
-.atlas/
+.jarvis/
 .agents/

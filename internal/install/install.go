@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/upstream"
-	"github.com/christianwijasabfi/atlas/skills"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/upstream"
+	"github.com/christianwijasa/jarvis/skills"
 )
 
-const pinFile = ".atlas-pin"
+const pinFile = ".jarvis-pin"
 
 type Result struct {
 	Name   string

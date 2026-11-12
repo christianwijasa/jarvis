@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/project"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/project"
 	"github.com/spf13/cobra"
 )
 
@@ -15,18 +15,18 @@ func newProjectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "project",
 		Short: "Named groups of repositories and their combined graph",
-		Long: `A project is a named group of git repositories. Atlas stores each
-one under $ATLAS_HOME/projects/<name>/project.yaml (default ~/.atlas).
+		Long: `A project is a named group of git repositories. Jarvis stores each
+one under $JARVIS_HOME/projects/<name>/project.yaml (default ~/.jarvis).
 
 The point of a project is one knowledge graph spanning every member repo
-so agents can trace cross-repo calls. Build it with atlas project graph.
+so agents can trace cross-repo calls. Build it with jarvis project graph.
 Never hardcodes product names; examples in help use shop / cart-service.
 
-Read commands accept --json (schema_version atlas.cli/v1).`,
-		Example: `  atlas project create shop --description "Example shop" --repo cart-service=https://github.com/example/cart-service.git
-  atlas project use shop
-  atlas project graph shop
-  atlas project show shop --json`,
+Read commands accept --json (schema_version jarvis.cli/v1).`,
+		Example: `  jarvis project create shop --description "Example shop" --repo cart-service=https://github.com/example/cart-service.git
+  jarvis project use shop
+  jarvis project graph shop
+  jarvis project show shop --json`,
 	}
 	cmd.AddCommand(
 		newProjectCreateCmd(),
@@ -52,18 +52,18 @@ func newProjectCreateCmd() *cobra.Command {
 	var tf trackerFlags
 	cmd := &cobra.Command{
 		Use:   "create <name>",
-		Short: "Create a project yaml under $ATLAS_HOME/projects/<name>/",
+		Short: "Create a project yaml under $JARVIS_HOME/projects/<name>/",
 		Long: `Create a named project. Names are lowercase kebab-case.
 
-On a TTY, Atlas may ask for a description, repos, and optional tracker
+On a TTY, Jarvis may ask for a description, repos, and optional tracker
 (URL, token, MCP id). Enter skips tracker fields. If stdin is not a TTY,
 pass flags; the name argument is enough. --repo may be repeated:
   name=url
   name=url@/abs/or/~/path
 
-Tracker token is stored in $ATLAS_HOME/projects/<name>/secrets (mode 0600),
+Tracker token is stored in $JARVIS_HOME/projects/<name>/secrets (mode 0600),
 never in project.yaml.`,
-		Example: `  atlas project create shop --description "Checkout and payments" \
+		Example: `  jarvis project create shop --description "Checkout and payments" \
     --repo cart-service=https://github.com/example/cart-service.git \
     --tracker-kind jira --tracker-site https://example.atlassian.net`,
 		Args: cobra.ExactArgs(1),
@@ -137,9 +137,9 @@ func newProjectUpdateCmd() *cobra.Command {
 
 --unset-tracker clears kind/site/mcp/project in project.yaml.
 --unset-tracker-token deletes the secrets file.
-On a TTY with no flags, Atlas asks optional tracker questions (enter keeps current).`,
-		Example: `  atlas project update shop --tracker-site https://example.atlassian.net --tracker-mcp plugin-atlassian-atlassian
-  atlas project update shop --unset-tracker-token`,
+On a TTY with no flags, Jarvis asks optional tracker questions (enter keeps current).`,
+		Example: `  jarvis project update shop --tracker-site https://example.atlassian.net --tracker-mcp plugin-atlassian-atlassian
+  jarvis project update shop --unset-tracker-token`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -344,7 +344,7 @@ func newProjectAddRepoCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "add-repo <project> <name>",
 		Short:   "Add or replace a repo in a project",
-		Example: `  atlas project add-repo shop cart-service --url https://github.com/example/cart-service.git --path ~/src/cart-service --branch main`,
+		Example: `  jarvis project add-repo shop cart-service --url https://github.com/example/cart-service.git --path ~/src/cart-service --branch main`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -372,7 +372,7 @@ func newProjectRemoveRepoCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "remove-repo <project> <name>",
 		Short:   "Remove a repo from a project yaml (does not delete the checkout)",
-		Example: `  atlas project remove-repo shop cart-service`,
+		Example: `  jarvis project remove-repo shop cart-service`,
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -395,8 +395,8 @@ func newProjectListCmd() *cobra.Command {
 	var asJSON bool
 	cmd := &cobra.Command{
 		Use:     "list",
-		Short:   "List projects in $ATLAS_HOME/projects",
-		Example: `  atlas project list --json`,
+		Short:   "List projects in $JARVIS_HOME/projects",
+		Example: `  jarvis project list --json`,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			list, err := project.List()
@@ -437,7 +437,7 @@ func newProjectShowCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "show <name>",
 		Short:   "Show a project, its repos, and graph path",
-		Example: `  atlas project show shop --json`,
+		Example: `  jarvis project show shop --json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -481,9 +481,9 @@ func newProjectDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete <name>",
 		Short: "Delete the project yaml only (never checkouts)",
-		Long: `Remove $ATLAS_HOME/projects/<name>/project.yaml. Does not delete
+		Long: `Remove $JARVIS_HOME/projects/<name>/project.yaml. Does not delete
 cloned repositories or graphify-out. Requires --yes when stdin is not a TTY.`,
-		Example: `  atlas project delete shop --yes`,
+		Example: `  jarvis project delete shop --yes`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
@@ -515,8 +515,8 @@ cloned repositories or graphify-out. Requires --yes when stdin is not a TTY.`,
 func newProjectUseCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "use <name>",
-		Short:   "Set project: <name> in atlas.yaml so agents know the active project",
-		Example: `  atlas project use shop`,
+		Short:   "Set project: <name> in jarvis.yaml so agents know the active project",
+		Example: `  jarvis project use shop`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
@@ -541,8 +541,8 @@ func newProjectCurrentCmd() *cobra.Command {
 	var asJSON bool
 	cmd := &cobra.Command{
 		Use:     "current",
-		Short:   "Print the active project from atlas.yaml",
-		Example: `  atlas project current --json`,
+		Short:   "Print the active project from jarvis.yaml",
+		Example: `  jarvis project current --json`,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			cfg, _, cfgPath := loadProjectConfig()
@@ -579,7 +579,7 @@ func newProjectCloneCmd() *cobra.Command {
 		Long: `Clone each repo that has a git URL and no existing checkout.
 Never pulls, resets, or deletes. Updates path in the project yaml for
 newly cloned repos. Existing paths are skipped.`,
-		Example: `  atlas project clone shop --dir ~/src --depth 1`,
+		Example: `  jarvis project clone shop --dir ~/src --depth 1`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -607,7 +607,7 @@ func newProjectStatusCmd() *cobra.Command {
 		Long: `For each repo: path exists, is a git repo, current branch, dirty,
 ahead/behind vs upstream (no fetch unless --fetch). Also compares
 graphify-out/graph.json mtime to each repo HEAD commit (stale if HEAD is newer).`,
-		Example: `  atlas project status shop --json`,
+		Example: `  jarvis project status shop --json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -649,7 +649,7 @@ func newProjectGraphCmd() *cobra.Command {
 		Short: "Build or refresh the combined graphify graph for all repos",
 		Long: `Shells out to graphify v0.9.15:
 
-  graphify extract <repo-path> --out $ATLAS_HOME/projects/<name>/extract/<repo> --code-only
+  graphify extract <repo-path> --out $JARVIS_HOME/projects/<name>/extract/<repo> --code-only
   graphify merge-graphs <each extract/.../graphify-out/graph.json> --out <graph.json>
 
 extract --out keeps graphify-out out of member checkouts. merge-graphs
@@ -657,14 +657,14 @@ prefixes node ids with the repo name (parent.parent of each graph.json).
 --update re-runs extract (incremental if a previous extract exists).
 --repos a,b limits which members are extracted and merged.
 
-If extract --out is empty or fails, Atlas copies that repo's in-repo
+If extract --out is empty or fails, Jarvis copies that repo's in-repo
 graphify-out/graph.json when present, otherwise skips the repo and
-continues. Combined output stays under $ATLAS_HOME/projects/<name>/.
+continues. Combined output stays under $JARVIS_HOME/projects/<name>/.
 
 Progress (extract i/n <repo>, merge n graphs) and live graphify logs go
 to stderr. Success is one stdout line with the combined graph path.`,
-		Example: `  atlas project graph shop
-  atlas project graph shop --update --repos cart-service,payment-service`,
+		Example: `  jarvis project graph shop
+  jarvis project graph shop --update --repos cart-service,payment-service`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -701,7 +701,7 @@ func newProjectGraphPathCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "graph-path <name>",
 		Short:   "Print the project graph.json path for graphify query",
-		Example: `  atlas project graph-path shop --json`,
+		Example: `  jarvis project graph-path shop --json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])

@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/project"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/project"
 )
 
 func TestProjectCreateAddRemoveUseCurrentJSON(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	dir := t.TempDir()
 	wd, err := os.Getwd()
 	if err != nil {
@@ -104,7 +104,7 @@ func TestProjectCreateAddRemoveUseCurrentJSON(t *testing.T) {
 }
 
 func TestProjectCreateUpdateTracker(t *testing.T) {
-	t.Setenv("ATLAS_HOME", t.TempDir())
+	t.Setenv("JARVIS_HOME", t.TempDir())
 	out, err := execute(t, "project", "create", "shop",
 		"--tracker-kind", "jira",
 		"--tracker-site", "https://example.atlassian.net",
@@ -151,7 +151,7 @@ func TestProjectCreateUpdateTracker(t *testing.T) {
 }
 
 func TestProjectCreateBadName(t *testing.T) {
-	t.Setenv("ATLAS_HOME", t.TempDir())
+	t.Setenv("JARVIS_HOME", t.TempDir())
 	_, err := execute(t, "project", "create", "Not_Valid")
 	if err == nil {
 		t.Fatal("expected kebab-case error")
@@ -160,7 +160,7 @@ func TestProjectCreateBadName(t *testing.T) {
 
 func TestInitProjectFlag(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	dir := t.TempDir()
 	wd, _ := os.Getwd()
 	defer os.Chdir(wd)
@@ -184,7 +184,7 @@ func TestInitProjectFlag(t *testing.T) {
 }
 
 func TestProjectGraphPathJSON(t *testing.T) {
-	t.Setenv("ATLAS_HOME", t.TempDir())
+	t.Setenv("JARVIS_HOME", t.TempDir())
 	if _, err := execute(t, "project", "create", "shop"); err != nil {
 		t.Fatal(err)
 	}

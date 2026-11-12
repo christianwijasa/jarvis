@@ -7,19 +7,19 @@ import (
 
 const (
 	agentsMDFile  = "AGENTS.md"
-	agentsMarkBeg = "<!-- atlas-agents-md:start -->"
-	agentsMarkEnd = "<!-- atlas-agents-md:end -->"
+	agentsMarkBeg = "<!-- jarvis-agents-md:start -->"
+	agentsMarkEnd = "<!-- jarvis-agents-md:end -->"
 )
 
-const agentsMDSnippet = `## Atlas
+const agentsMDSnippet = `## Jarvis
 
 Before planning or editing in this repository, run:
 
-    atlas help --agent
+    jarvis help --agent
 
-Use ` + "`atlas help --agent --json`" + ` for machine-readable help (` + "`schema_version`" + ` ` + SchemaVersion + `).
-Prefer non-interactive flags (` + "`--yes`" + `, ` + "`--skills`" + `, ` + "`--scope`" + `). Do not wait on Atlas prompts.
-Load a skill with ` + "`atlas skills show <name>`" + `.
+Use ` + "`jarvis help --agent --json`" + ` for machine-readable help (` + "`schema_version`" + ` ` + SchemaVersion + `).
+Prefer non-interactive flags (` + "`--yes`" + `, ` + "`--skills`" + `, ` + "`--scope`" + `). Do not wait on Jarvis prompts.
+Load a skill with ` + "`jarvis skills show <name>`" + `.
 `
 
 func upsertAgentsMD(path string) (string, error) {

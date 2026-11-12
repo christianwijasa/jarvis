@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/install"
-	"github.com/christianwijasabfi/atlas/internal/project"
-	"github.com/christianwijasabfi/atlas/internal/upstream"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/install"
+	"github.com/christianwijasa/jarvis/internal/project"
+	"github.com/christianwijasa/jarvis/internal/upstream"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -29,24 +29,24 @@ func newInitCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "Write atlas.yaml and install chosen skills",
-		Long: `Create atlas.yaml in the current directory and install the chosen
-skills into $ATLAS_HOME/skills (default ~/.atlas/skills).
+		Short: "Write jarvis.yaml and install chosen skills",
+		Long: `Create jarvis.yaml in the current directory and install the chosen
+skills into $JARVIS_HOME/skills (default ~/.jarvis/skills).
 
-On a TTY, Atlas asks: Recommended vs Choose skills, then global / local / both.
-If stdin is not a TTY, Atlas never prompts. Pass --yes, --recommended, or
+On a TTY, Jarvis asks: Recommended vs Choose skills, then global / local / both.
+If stdin is not a TTY, Jarvis never prompts. Pass --yes, --recommended, or
 --skills (and optionally --scope). Missing flags exit 1 with the flag names.
 
 --agents-md appends a marked block to AGENTS.md telling other agents to run
-atlas help --agent first. Existing AGENTS.md is not overwritten; the marked
+jarvis help --agent first. Existing AGENTS.md is not overwritten; the marked
 block is inserted or refreshed idempotently.
 
 --project <name> links or creates a named repo group after skills are
 installed. Non-TTY skips this unless the flag is given.`,
-		Example: `  atlas init --yes
-  atlas init --recommended --scope both --agents-md
-  atlas init --skills grilling,graphify --scope local --copy
-  atlas init --yes --project shop`,
+		Example: `  jarvis init --yes
+  jarvis init --recommended --scope both --agents-md
+  jarvis init --skills grilling,graphify --scope local --copy
+  jarvis init --yes --project shop`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			path := config.FileName
@@ -64,7 +64,7 @@ installed. Non-TTY skips this unless the flag is given.`,
 			in := bufio.NewReader(cmd.InOrStdin())
 			interactive := stdinIsTerminal(cmd.InOrStdin()) && !yes
 			if !interactive && !recommended && !cmd.Flags().Changed("skills") && !yes {
-				return fmt.Errorf("stdin is not a TTY; pass --yes (recommended skills, scope both), or --recommended / --skills and optionally --scope, so Atlas does not prompt")
+				return fmt.Errorf("stdin is not a TTY; pass --yes (recommended skills, scope both), or --recommended / --skills and optionally --scope, so Jarvis does not prompt")
 			}
 
 			names, err := chooseSkillNames(cmd, in, reg, recommended, skillsFlag, cmd.Flags().Changed("skills"), interactive)
@@ -128,7 +128,7 @@ installed. Non-TTY skips this unless the flag is given.`,
 				if err != nil {
 					return err
 				}
-				fmt.Fprintf(out, "AGENTS.md: %s marked Atlas block\n", action)
+				fmt.Fprintf(out, "AGENTS.md: %s marked Jarvis block\n", action)
 			}
 			return nil
 		},
@@ -137,9 +137,9 @@ installed. Non-TTY skips this unless the flag is given.`,
 	cmd.Flags().StringVar(&skillsFlag, "skills", "", "comma-separated skill names to install")
 	cmd.Flags().BoolVar(&yes, "yes", false, "non-interactive; recommended skills and scope both unless flags say otherwise")
 	cmd.Flags().StringVar(&scopeFlag, "scope", "", "where agents load skills: global, local, or both")
-	cmd.Flags().BoolVar(&copyLocal, "copy", false, "copy into the project instead of symlink from $ATLAS_HOME")
+	cmd.Flags().BoolVar(&copyLocal, "copy", false, "copy into the project instead of symlink from $JARVIS_HOME")
 	cmd.Flags().StringVar(&localDir, "local-dir", "", "project-local skills directory (default .agents/skills)")
-	cmd.Flags().BoolVar(&agentsMD, "agents-md", false, "append or refresh a marked Atlas block in AGENTS.md (never overwrite the whole file)")
+	cmd.Flags().BoolVar(&agentsMD, "agents-md", false, "append or refresh a marked Jarvis block in AGENTS.md (never overwrite the whole file)")
 	cmd.Flags().StringVar(&projectName, "project", "", "link or create a named project (non-TTY: skipped unless this flag is set)")
 	return cmd
 }
@@ -273,7 +273,7 @@ func promptScope(cmd *cobra.Command, in *bufio.Reader) (string, error) {
 	out := cmd.OutOrStdout()
 	home, err := config.HomeDir(nil)
 	if err != nil {
-		home = "~/.atlas"
+		home = "~/.jarvis"
 	}
 	fmt.Fprintln(out, "Where should agents load skills from?")
 	fmt.Fprintf(out, "  [1] Global only (%s/skills)\n", home)

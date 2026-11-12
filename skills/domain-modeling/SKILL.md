@@ -16,7 +16,7 @@ Hub UPSTREAM.md skipped the upstream CONTEXT → GLOSSARY rename on purpose.
 
 Actively build and sharpen the project's domain model as you design. Challenge terms, invent edge-case scenarios, and write the glossary and decisions down the moment they crystallise.
 
-Glossary and ADRs live in the history repo (`atlas.yaml` `history.path`), not in this CLI repo.
+Glossary and ADRs live in the history repo (`jarvis.yaml` `history.path`), not in this CLI repo.
 
 ## File structure
 

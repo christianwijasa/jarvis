@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-// DefaultRepo is the GitHub owner/name atlas update queries.
-const DefaultRepo = "christianwijasabfi/atlas"
+// DefaultRepo is the GitHub owner/name jarvis update queries.
+const DefaultRepo = "christianwijasa/jarvis"
 
 // Options control a single update attempt.
 type Options struct {
@@ -87,7 +87,7 @@ func writeProgress(w io.Writer, format string, args ...any) {
 }
 
 // Apply fetches the latest tagged GitHub Release (never main) and optionally
-// replaces Dest with the matching atlas-<os>-<arch> asset.
+// replaces Dest with the matching jarvis-<os>-<arch> asset.
 func (c Client) Apply(opts Options) (Result, error) {
 	var res Result
 	res.Current = strings.TrimSpace(opts.Current)
@@ -106,7 +106,7 @@ func (c Client) Apply(opts Options) (Result, error) {
 		goarch = runtime.GOARCH
 	}
 	if goos == "windows" {
-		return res, fmt.Errorf("atlas update does not support windows")
+		return res, fmt.Errorf("jarvis update does not support windows")
 	}
 
 	dest := strings.TrimSpace(opts.Dest)
@@ -123,7 +123,7 @@ func (c Client) Apply(opts Options) (Result, error) {
 	res.Path = dest
 
 	if _, err := c.lookPath("gh"); err != nil {
-		return res, fmt.Errorf("gh is not on PATH; atlas doctor checks this")
+		return res, fmt.Errorf("gh is not on PATH; jarvis doctor checks this")
 	}
 
 	prog := opts.progress()
@@ -149,13 +149,13 @@ func (c Client) Apply(opts Options) (Result, error) {
 		return res, nil
 	}
 
-	asset := fmt.Sprintf("atlas-%s-%s", goos, goarch)
+	asset := fmt.Sprintf("jarvis-%s-%s", goos, goarch)
 	if !rel.hasAsset(asset) {
 		return res, fmt.Errorf("release %s has no asset %s", res.Latest, asset)
 	}
 
 	writeProgress(prog, "downloading %s %s\n", res.Latest, asset)
-	work, err := os.MkdirTemp("", "atlas-update-")
+	work, err := os.MkdirTemp("", "jarvis-update-")
 	if err != nil {
 		return res, err
 	}
@@ -228,7 +228,7 @@ func replaceBinary(dest string, body []byte) error {
 		mode = st.Mode()
 	}
 	dir := filepath.Dir(dest)
-	tmp, err := os.CreateTemp(dir, "atlas.new.*")
+	tmp, err := os.CreateTemp(dir, "jarvis.new.*")
 	if err != nil {
 		return permissionHint(dest, err)
 	}
@@ -259,7 +259,7 @@ func permissionHint(dest string, err error) error {
 		return nil
 	}
 	if os.IsPermission(err) {
-		return fmt.Errorf("cannot replace %s: %w (try: sudo atlas update)", dest, err)
+		return fmt.Errorf("cannot replace %s: %w (try: sudo jarvis update)", dest, err)
 	}
 	return fmt.Errorf("cannot replace %s: %w", dest, err)
 }

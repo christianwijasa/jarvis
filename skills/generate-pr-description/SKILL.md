@@ -4,7 +4,7 @@ description: >-
   Generate brief, clear, and high-signal pull request descriptions from
   git diff and commit history. Produces copy-paste-ready markdown focused
   on brevity, with extra detail reserved only for critical parts. Use
-  before opening PRs in the history repo or any repo listed in atlas.yaml.
+  before opening PRs in the history repo or any repo listed in jarvis.yaml.
 ---
 
 # Generate PR Description
@@ -21,7 +21,7 @@ formatted in clean bullet points, ready to copy and paste.
 ## When to Use
 
 - When the user asks to generate, draft, or write a PR description.
-- Before opening a PR in a repo listed in `atlas.yaml` `repos`, or in the history repo.
+- Before opening a PR in a repo listed in `jarvis.yaml` `repos`, or in the history repo.
 - After finishing an implementation branch.
 
 ## Workflow
@@ -43,7 +43,7 @@ formatted in clean bullet points, ready to copy and paste.
 ### 2. Check for Linked Spec / TRD
 
 - If the branch name or commits reference a Jira key:
-  - Check `<history.path>/docs/plans/<JIRA-KEY>/` (from `atlas.yaml`).
+  - Check `<history.path>/docs/plans/<JIRA-KEY>/` (from `jarvis.yaml`).
   - Read YAML frontmatter for **`tier`** and **`test_source`**.
 - PR body should include a link to that TRD using the history repo host.
 
@@ -78,7 +78,7 @@ Always provide the output in a single copy-paste-ready `markdown` code block.
 ## Story tier
 
 - **Tier:** <A|B|C from plan frontmatter or user>
-- **Test source:** <atlas:TRD-Testing | jira:KEY | user-prompt | waived>
+- **Test source:** <jarvis:TRD-Testing | jira:KEY | user-prompt | waived>
 
 ## Test plan
 
@@ -93,12 +93,12 @@ Always provide the output in a single copy-paste-ready `markdown` code block.
 - Closes [<JIRA-KEY>](<jira.site>/browse/<JIRA-KEY>)
 ```
 
-Build Jira links from `atlas.yaml` `jira.site`. Do not hard-code a
+Build Jira links from `jarvis.yaml` `jira.site`. Do not hard-code a
 company Jira host.
 
 ### 5. Open PR
 
 After the user approves the description and the branch is ready:
 
-1. Create the PR in the **product repo** (not this CLI repo), unless the change is Atlas-CLI-only.
+1. Create the PR in the **product repo** (not this CLI repo), unless the change is Jarvis-CLI-only.
 2. Run local checks, push **once** for this review round, then add the team’s review label on that **final** head if they use one.

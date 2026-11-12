@@ -6,7 +6,7 @@ description: >-
 # Branch naming (Jira-backed work)
 
 When **creating** a git branch for work tracked in Jira — in any repo
-listed in `atlas.yaml` `repos`, or before TRD planning — use this naming:
+listed in `jarvis.yaml` `repos`, or before TRD planning — use this naming:
 
 | Purpose                         | Required prefix   | Example          |
 | ------------------------------- | ----------------- | ---------------- |
@@ -15,7 +15,7 @@ listed in `atlas.yaml` `repos`, or before TRD planning — use this naming:
 
 ## Rules
 
-1. **`<JIRA-KEY>`** — exact Atlassian issue key (project from `atlas.yaml`
+1. **`<JIRA-KEY>`** — exact Atlassian issue key (project from `jarvis.yaml`
    `jira.project` unless the user names another). Use the **implementation**
    ticket for the branch when it differs from the TRD folder key; record
    both in TRD frontmatter.

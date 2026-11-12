@@ -11,7 +11,7 @@ description: >-
 # Test case design (TRD-Testing local-testing guide)
 
 **Output:** one file, `<history.path>/docs/plans/<KEY>/TRD-Testing.md`
-(history repo from `atlas.yaml`). It answers two questions for whoever
+(history repo from `jarvis.yaml`). It answers two questions for whoever
 tests locally: **(a) does the TRD/PR deliver what the story asks?** and
 **(b) do existing flows still work?**
 
@@ -36,7 +36,7 @@ this skill. Fill **Author** with whoever writes it.
 
 ## Workflow
 
-1. Read the Jira story AC (`atlas.yaml` `jira.site`), the implementation TRD, and the PR diff if one exists.
+1. Read the Jira story AC (`jarvis.yaml` `jira.site`), the implementation TRD, and the PR diff if one exists.
 2. Find existing coverage (read-only): linked cases in the team’s test tool, tagged automated specs for the touched endpoints/screens.
 3. Build the AC → case map, then the regression list.
 4. Fill traceability, env/data/flags, functional cases, cross-service cases, regression. Every case gets **How to run**.

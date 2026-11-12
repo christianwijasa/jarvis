@@ -41,25 +41,25 @@ Turn any folder of files into a navigable knowledge graph with community detecti
 /graphify explain "SwinTransformer"                   # plain-language explanation of a node
 ```
 
-## Atlas projects (prefer the combined graph)
+## Jarvis projects (prefer the combined graph)
 
-If `atlas.yaml` has `project: <name>`, Atlas keeps **one knowledge graph
-for every repo in that project** at `$ATLAS_HOME/projects/<name>/graphify-out/`
+If `jarvis.yaml` has `project: <name>`, Jarvis keeps **one knowledge graph
+for every repo in that project** at `$JARVIS_HOME/projects/<name>/graphify-out/`
 (override: `graph.out_dir` in `project.yaml`). Node ids are prefixed with
 the repo name so `cart-service` and `payment-service` cannot collide.
 
 When an active project exists:
 
-1. `atlas project current --json` and `atlas project show <name> --json` (includes `graph_json`).
+1. `jarvis project current --json` and `jarvis project show <name> --json` (includes `graph_json`).
 2. Query **that** graph before reading files across repos:
-   `graphify query "how does cart-service call payment-service"` with cwd or graph path from `atlas project graph-path <name>`.
-3. Build or refresh with `atlas project graph <name>` (uses `graphify extract --out` then `graphify merge-graphs`; does **not** write `graphify-out/` inside member checkouts).
+   `graphify query "how does cart-service call payment-service"` with cwd or graph path from `jarvis project graph-path <name>`.
+3. Build or refresh with `jarvis project graph <name>` (uses `graphify extract --out` then `graphify merge-graphs`; does **not** write `graphify-out/` inside member checkouts).
 
 If there is no active project, use this repo's own `graphify-out/`.
 
 ## Team graphs
 
-If this team keeps graphs for the repos listed in `atlas.yaml`, treat query
+If this team keeps graphs for the repos listed in `jarvis.yaml`, treat query
 results as hints, then verify in current source. Refresh or extract is a
 separate explicit action. See [references/team-graphs.md](references/team-graphs.md) and [references/query.md](references/query.md).
 
@@ -72,7 +72,7 @@ Drop any folder of code, docs, papers, images, or video into graphify and get a 
 
 If the user invoked `/graphify --help` or `/graphify -h` (with no other arguments), print the contents of the `## Usage` section above verbatim and stop. Do not run any commands, do not detect files, do not default the path to `.`. Just print the Usage block and return.
 
-**Fast path — existing graph:** Before doing anything else, if `atlas.yaml` names an active project, prefer `$ATLAS_HOME/projects/<name>/graphify-out/graph.json` (`atlas project graph-path`). Otherwise check whether `graphify-out/graph.json` exists relative to the **current working directory**. If a graph exists AND the user's request is a natural-language question about the codebase (e.g. "How does X work?", "What calls Y?", "Trace the data flow through Z") and NOT an explicit rebuild command (`--update`, `--cluster-only`, `atlas project graph`, or a bare path/URL that implies fresh extraction): **skip Steps 1–5 entirely and jump straight to `## For /graphify query`.** Run `graphify query "<question>"` immediately (against the project graph when one is active). Do not run detect. Do not check corpus size. Do not ask the user to narrow. The graph is already built — use it.
+**Fast path — existing graph:** Before doing anything else, if `jarvis.yaml` names an active project, prefer `$JARVIS_HOME/projects/<name>/graphify-out/graph.json` (`jarvis project graph-path`). Otherwise check whether `graphify-out/graph.json` exists relative to the **current working directory**. If a graph exists AND the user's request is a natural-language question about the codebase (e.g. "How does X work?", "What calls Y?", "Trace the data flow through Z") and NOT an explicit rebuild command (`--update`, `--cluster-only`, `jarvis project graph`, or a bare path/URL that implies fresh extraction): **skip Steps 1–5 entirely and jump straight to `## For /graphify query`.** Run `graphify query "<question>"` immediately (against the project graph when one is active). Do not run detect. Do not check corpus size. Do not ask the user to narrow. The graph is already built — use it.
 
 If no path was given, use `.` (current directory). Do not ask the user for a path.
 
@@ -226,7 +226,7 @@ Path('graphify-out/.graphify_semantic.json').write_text(json.dumps({'nodes':[],'
 "
 ```
 
-**Subagent gate:** Read **`ATLAS_CURSOR_SUBAGENTS`** from atlas `.env` — [`.agents/rules/atlas-cursor-subagents.mdc`](../../rules/atlas-cursor-subagents.mdc) (canonical gate). Default **on**. Part B semantic work = **global Tier 1** — [`.agents/rules/atlas-subagent-delegation.mdc`](../../rules/atlas-subagent-delegation.mdc).
+**Subagent gate:** Read **`JARVIS_CURSOR_SUBAGENTS`** from jarvis `.env` — [`.agents/rules/jarvis-cursor-subagents.mdc`](../../rules/jarvis-cursor-subagents.mdc) (canonical gate). Default **on**. Part B semantic work = **global Tier 1** — [`.agents/rules/jarvis-subagent-delegation.mdc`](../../rules/jarvis-subagent-delegation.mdc).
 
 - **Enabled:** You use supported delegation for substantial independent chunks when permitted; otherwise extract inline. No performance claim follows from invocation count.
 - **Disabled:** Do **not** Task. Extract semantic chunks **inline** in the main agent (or use Gemini parallel when keys are set). Write each chunk result to `graphify-out/.graphify_chunk_NN.json` yourself, then continue to Step B3.
@@ -273,11 +273,11 @@ Only dispatch subagents for files listed in `graphify-out/.graphify_uncached.txt
 
 Load files from `graphify-out/.graphify_uncached.txt`. Split into chunks of 20-25 files each. Each image gets its own chunk (vision needs separate context). When splitting, group files from the same directory together so related artifacts land in the same chunk and cross-file relationships are more likely to be extracted.
 
-**Step B2 - Dispatch ALL subagents in a single message** (skip entire step when `ATLAS_CURSOR_SUBAGENTS` is off — inline path above)
+**Step B2 - Dispatch ALL subagents in a single message** (skip entire step when `JARVIS_CURSOR_SUBAGENTS` is off — inline path above)
 
 > Uses the selected host delegation capability when available and permitted.
 > Dispatch one narrow mission per independent chunk using observed supported arguments; otherwise run inline.
-Use observed host/model/effort capabilities and preserve explicit preferences; shared policy: `.agents/rules/atlas-llm-model.mdc`; selected binding: `docs/agents/hosts/`.
+Use observed host/model/effort capabilities and preserve explicit preferences; shared policy: `.agents/rules/jarvis-llm-model.mdc`; selected binding: `docs/agents/hosts/`.
 
 Pass the extraction prompt as the task description:
 

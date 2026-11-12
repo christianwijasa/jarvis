@@ -9,7 +9,7 @@ import (
 func withHome(t *testing.T) string {
 	t.Helper()
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	return home
 }
 

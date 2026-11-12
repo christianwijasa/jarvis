@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
+	"github.com/christianwijasa/jarvis/internal/config"
 )
 
 func TestCheckWithConfig(t *testing.T) {
@@ -18,7 +18,7 @@ func TestCheckWithConfig(t *testing.T) {
 	var buf bytes.Buffer
 	_ = Check(&buf, dir)
 	out := buf.String()
-	if !strings.Contains(out, "git:") || !strings.Contains(out, "gh:") || !strings.Contains(out, "graphify:") || !strings.Contains(out, "atlas.yaml: pass") {
+	if !strings.Contains(out, "git:") || !strings.Contains(out, "gh:") || !strings.Contains(out, "graphify:") || !strings.Contains(out, "jarvis.yaml: pass") {
 		t.Fatalf("unexpected doctor output:\n%s", out)
 	}
 }
@@ -27,9 +27,9 @@ func TestCheckWithoutConfig(t *testing.T) {
 	var buf bytes.Buffer
 	err := Check(&buf, t.TempDir())
 	if err == nil {
-		t.Fatal("expected error when atlas.yaml is missing")
+		t.Fatal("expected error when jarvis.yaml is missing")
 	}
-	if !strings.Contains(buf.String(), "atlas.yaml: fail") {
+	if !strings.Contains(buf.String(), "jarvis.yaml: fail") {
 		t.Fatalf("unexpected doctor output:\n%s", buf.String())
 	}
 }
@@ -37,7 +37,7 @@ func TestCheckWithoutConfig(t *testing.T) {
 func TestCheckSkillLinks(t *testing.T) {
 	dir := t.TempDir()
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	cfg := &config.Config{Skills: config.Skills{
 		Scope:     config.ScopeBoth,
 		LocalDir:  ".agents/skills",

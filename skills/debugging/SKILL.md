@@ -1,7 +1,7 @@
 ---
 name: debugging
 description: >-
-  Root-cause debugging for repos listed in atlas.yaml. Use on demand when a
+  Root-cause debugging for repos listed in jarvis.yaml. Use on demand when a
   test fails, CI is red, a bug is reported, or behaviour is unexpected and
   the cause is not yet known, before proposing a fix. Steps: reproduce,
   trace the root cause, then fix with a failing test first. Not for planned

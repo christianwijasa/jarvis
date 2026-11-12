@@ -16,9 +16,9 @@ Hub UPSTREAM.md skipped later grill-with-docs upstream edits on purpose.
 
 # Grill with docs (TRD enhancement)
 
-Stateful grilling for Atlas TRD work. Vocabulary lands in the team
+Stateful grilling for Jarvis TRD work. Vocabulary lands in the team
 glossary as it resolves; durable decisions land in `docs/adr/` in the
-history repo (`atlas.yaml` `history.path`). Everything else feeds the
+history repo (`jarvis.yaml` `history.path`). Everything else feeds the
 TRD sections directly.
 
 ## Planning gate (non-negotiable for new plans)
@@ -42,9 +42,9 @@ If the agent would skip the interview and write a TRD in one shot, **stop** — 
 
 Read before starting:
 
-- Jira fetch from `atlas.yaml` `jira.site`
+- Jira fetch from `jarvis.yaml` `jira.site`
 - Glossary + ADR layout in the history repo
-- Story tier with the user (`atlas.yaml` `tiers`)
+- Story tier with the user (`jarvis.yaml` `tiers`)
 - Existing glossary, `docs/adr/`, and `docs/plans/<JIRA-KEY>/` if present
 
 ## Dependencies (must load both)
@@ -65,7 +65,7 @@ If either dependency is missing, stop and report which skill failed to load.
 
 ## Workflow
 
-0. **Story tier** — confirm with the user. Default is `atlas.yaml` `tiers.default`.
+0. **Story tier** — confirm with the user. Default is `jarvis.yaml` `tiers.default`.
    - **Tier A:** full grilling rounds until frontier empty.
    - **Tier B:** focus on integration vocabulary and Jira AC gaps; skip empty Testing-file topics.
    - **Tier C:** confirm scope, waive, and risks only — **no multi-round interview** when the user explicitly agrees.

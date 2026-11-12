@@ -1,4 +1,4 @@
-module github.com/christianwijasabfi/atlas
+module github.com/christianwijasa/jarvis
 
 go 1.22
 

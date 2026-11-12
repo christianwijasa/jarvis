@@ -99,7 +99,7 @@ func fetchGHTarball(run func(dir, name string, args ...string) ([]byte, error), 
 }
 
 func fetchGit(run func(dir, name string, args ...string) ([]byte, error), repo, commit, treePath string) (map[string][]byte, error) {
-	tmp, err := os.MkdirTemp("", "atlas-skill-")
+	tmp, err := os.MkdirTemp("", "jarvis-skill-")
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/christianwijasabfi/atlas/internal/buildinfo"
-	"github.com/christianwijasabfi/atlas/internal/update"
+	"github.com/christianwijasa/jarvis/internal/buildinfo"
+	"github.com/christianwijasa/jarvis/internal/update"
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +20,9 @@ func newUpdateCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Replace this binary with the latest tagged GitHub Release",
 		Long: `Download the latest git tag from GitHub Releases (never main) and
-replace the running atlas binary.
+replace the running jarvis binary.
 
-Needs gh on PATH. Asset names are atlas-<os>-<arch>. Checksums are
+Needs gh on PATH. Asset names are jarvis-<os>-<arch>. Checksums are
 verified when SHA256SUMS is attached to the release.
 
 --check prints current vs latest and downloads nothing.
@@ -30,12 +30,12 @@ This command does not prompt. Progress goes to stderr.
 
 On a human TTY, other commands may offer the same install (zsh-style
 [Y/n]). That nag is skipped without a TTY, with --json, for help
---agent, when the binary is "dev", and when ATLAS_DISABLE_AUTO_UPDATE
-is set. ATLAS_UPDATE_DAYS (default 13) is the check interval.
-ATLAS_DISABLE_UPDATE_PROMPT applies without asking.`,
-		Example: `  atlas update
-  atlas update --check
-  atlas update --json`,
+--agent, when the binary is "dev", and when JARVIS_DISABLE_AUTO_UPDATE
+is set. JARVIS_UPDATE_DAYS (default 13) is the check interval.
+JARVIS_DISABLE_UPDATE_PROMPT applies without asking.`,
+		Example: `  jarvis update
+  jarvis update --check
+  jarvis update --json`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			opts := update.Options{
@@ -73,7 +73,7 @@ ATLAS_DISABLE_UPDATE_PROMPT applies without asking.`,
 	}
 	addJSONFlag(cmd, &asJSON)
 	cmd.Flags().BoolVar(&check, "check", false, "print current vs latest tag; do not download")
-	cmd.Flags().StringVar(&repo, "repo", update.DefaultRepo, "GitHub owner/name of the atlas CLI")
+	cmd.Flags().StringVar(&repo, "repo", update.DefaultRepo, "GitHub owner/name of the jarvis CLI")
 	return cmd
 }
 

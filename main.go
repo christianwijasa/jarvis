@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/christianwijasabfi/atlas/cmd"
+	"github.com/christianwijasa/jarvis/cmd"
 )
 
 func main() {

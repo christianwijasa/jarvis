@@ -1,7 +1,7 @@
-# Provenance for Atlas skills and rules.
+# Provenance for Jarvis skills and rules.
 # Source snapshot: bravo-agency-atlas main 6b267df, imported via
 # import/old-hub-snapshot (aa6dad4) old-hub/. This file is the registry
-# `atlas skills upstream` reads. It never auto-applies updates.
+# `jarvis skills upstream` reads. It never auto-applies updates.
 
 source:
   hub_repo: https://github.com/christianwijasabfi/bravo-agency-atlas
@@ -21,7 +21,7 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "Atlas-written in the hub. No UPSTREAM.md or skills-lock row. De-BFI'd: history.path and repos from atlas.yaml; removed bot names and bfi-finance URLs."
+    note: "Jarvis-written in the hub. No UPSTREAM.md or skills-lock row. De-BFI'd: history.path and repos from jarvis.yaml; removed bot names and bfi-finance URLs."
 
   - name: grilling
     kind: skill
@@ -34,7 +34,7 @@ entries:
     upstream_path: skills/productivity/grilling/SKILL.md
     pinned_commit: 49dd158d1076134a641b33efb035946536778336
     licence: MIT
-    note: "Taken 'yes accepts recommended answer' line (hub UPSTREAM.md). Kept Atlas rounds, frontier, and diagram-the-gaps. Dropped hub diagram-design pointer."
+    note: "Taken 'yes accepts recommended answer' line (hub UPSTREAM.md). Kept Jarvis rounds, frontier, and diagram-the-gaps. Dropped hub diagram-design pointer."
 
   - name: grill-with-docs
     kind: skill
@@ -47,7 +47,7 @@ entries:
     upstream_path: skills/engineering/grill-with-docs/SKILL.md
     pinned_commit: 49dd158d1076134a641b33efb035946536778336
     licence: MIT
-    note: "AI Hero grill-with-docs. Hub UPSTREAM.md skipped later grill-with-docs upstream edits on purpose. Config via atlas.yaml / history repo, not docs/agents."
+    note: "AI Hero grill-with-docs. Hub UPSTREAM.md skipped later grill-with-docs upstream edits on purpose. Config via jarvis.yaml / history repo, not docs/agents."
 
   - name: domain-modeling
     kind: skill
@@ -73,7 +73,7 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "Atlas-written. No upstream row. BFI QA/Zephyr/BAE-T/GenFi examples removed; method kept. Bruno skill not imported; HTTP examples use curl."
+    note: "Jarvis-written. No upstream row. BFI QA/Zephyr/BAE-T/GenFi examples removed; method kept. Bruno skill not imported; HTTP examples use curl."
 
   - name: development
     kind: skill
@@ -86,7 +86,7 @@ entries:
     upstream_path: skills/verification-before-completion/SKILL.md
     pinned_commit: bb92a77741419a4ab5f06e711a283343f1ada0c3
     licence: MIT
-    note: "Evidence-before-done and test-first from superpowers; ponytail shortcut line from DietrichGebert/ponytail 09c434a; test-first red diff line from mattpocock/skills 49dd158. Repos and coverage percents from atlas.yaml. Skipped workstation, LORA, Codacy, bot names."
+    note: "Evidence-before-done and test-first from superpowers; ponytail shortcut line from DietrichGebert/ponytail 09c434a; test-first red diff line from mattpocock/skills 49dd158. Repos and coverage percents from jarvis.yaml. Skipped workstation, LORA, Codacy, bot names."
 
   - name: debugging
     kind: skill
@@ -125,7 +125,7 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "Atlas-written. No upstream row. Jira and TRD links from atlas.yaml; dropped bfi-finance blob URLs and atlas-review/Grok label steps."
+    note: "Jarvis-written. No upstream row. Jira and TRD links from jarvis.yaml; dropped bfi-finance blob URLs and jarvis-review/Grok label steps."
 
   - name: graphify
     kind: skill
@@ -138,7 +138,7 @@ entries:
     upstream_path: graphify/skill.md
     pinned_commit: 961b78e57a10e9c5bb98421ff3e45b40be73542b
     licence: MIT
-    note: "Sponsor link is github.com/sponsors/safishamsi; that user redirects to Graphify-Labs/graphify. Pin is tag v0.9.15 matching old-hub .graphify_version (annotated tag object bc23aec, commit 961b78e). LICENSE at that tag is MIT (Safi Shamsi); current default branch may differ. Stripped hub Makefile/agency-query BFI layer. Atlas-adapted: prefer the active Atlas project's combined graph ($ATLAS_HOME/projects/<name>/graphify-out) over a repo-local graphify-out when atlas.yaml sets project:."
+    note: "Sponsor link is github.com/sponsors/safishamsi; that user redirects to Graphify-Labs/graphify. Pin is tag v0.9.15 matching old-hub .graphify_version (annotated tag object bc23aec, commit 961b78e). LICENSE at that tag is MIT (Safi Shamsi); current default branch may differ. Stripped hub Makefile/agency-query BFI layer. Jarvis-adapted: prefer the active Jarvis project's combined graph ($JARVIS_HOME/projects/<name>/graphify-out) over a repo-local graphify-out when jarvis.yaml sets project:."
 
   - name: archify
     kind: skill
@@ -152,7 +152,7 @@ entries:
     pinned_commit: 208acba8d412335185b2056fedf54b3405df43fb
     pinned_tag: v3.2.0
     licence: Apache-2.0
-    note: "Tag v3.2.0 (annotated tag e62275b, commit 208acba). Not stored in this repo; atlas skills install fetches archify/ at the pinned commit into $ATLAS_HOME/skills (default ~/.atlas/skills). Tag tree LICENSE/SKILL.md still say MIT; upstream main is Apache-2.0. LICENSE texts live in LICENSES/."
+    note: "Tag v3.2.0 (annotated tag e62275b, commit 208acba). Not stored in this repo; jarvis skills install fetches archify/ at the pinned commit into $JARVIS_HOME/skills (default ~/.jarvis/skills). Tag tree LICENSE/SKILL.md still say MIT; upstream main is Apache-2.0. LICENSE texts live in LICENSES/."
 
   - name: plain-english
     kind: rule
@@ -185,7 +185,7 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "Repos from atlas.yaml. Example keys TEAM-* not BAE-*."
+    note: "Repos from jarvis.yaml. Example keys TEAM-* not BAE-*."
 
   - name: branch-naming
     kind: rule
@@ -196,7 +196,7 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "Default project from atlas.yaml jira.project. Dropped links to atlas-* rules."
+    note: "Default project from jarvis.yaml jira.project. Dropped links to jarvis-* rules."
 
   - name: karpathy-guidelines
     kind: rule
@@ -207,7 +207,7 @@ entries:
     upstream_path: skills/karpathy-guidelines/SKILL.md
     pinned_commit: 2c606141936f1eeef17fa3043a72095b4765b9c2
     licence: unknown
-    note: "Pin is current main 2c606141936f1eeef17fa3043a72095b4765b9c2 (path last touched at 64723a49). Licence unknown: the upstream repo has no LICENSE file. Atlas ponytail pairing line kept from the hub."
+    note: "Pin is current main 2c606141936f1eeef17fa3043a72095b4765b9c2 (path last touched at 64723a49). Licence unknown: the upstream repo has no LICENSE file. Jarvis ponytail pairing line kept from the hub."
 
   - name: ponytail
     kind: rule
@@ -229,7 +229,7 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "Hub agency/LORA profile flags replaced with atlas.yaml gates.test_case. Removed Kurisu/Lawliet/Christian."
+    note: "Hub agency/LORA profile flags replaced with jarvis.yaml gates.test_case. Removed Kurisu/Lawliet/Christian."
 
   - name: plan-execution-test-data-guard
     kind: rule
@@ -240,7 +240,7 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "gates.test_data from atlas.yaml. Removed agency env keys, DBX MCP, LORA skip."
+    note: "gates.test_data from jarvis.yaml. Removed agency env keys, DBX MCP, LORA skip."
 
   - name: graph-first-analysis
     kind: rule
@@ -251,4 +251,4 @@ entries:
     upstream_path: ""
     pinned_commit: ""
     licence: ""
-    note: "Dropped BFI business-layer node IDs and atlas-nav.py. Prefer the active Atlas project graph, else repo graphify-out/. Points at core graphify skill."
+    note: "Dropped BFI business-layer node IDs and jarvis-nav.py. Prefer the active Jarvis project graph, else repo graphify-out/. Points at core graphify skill."

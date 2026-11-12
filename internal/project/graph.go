@@ -31,7 +31,7 @@ func writeProgress(format string, args ...any) {
 var GraphifyRun = func(args ...string) error {
 	path, err := exec.LookPath("graphify")
 	if err != nil {
-		return fmt.Errorf("graphify is not on PATH; install the graphify CLI (atlas doctor checks this)")
+		return fmt.Errorf("graphify is not on PATH; install the graphify CLI (jarvis doctor checks this)")
 	}
 	cmd := exec.Command(path, args...)
 	out := progressWriter()

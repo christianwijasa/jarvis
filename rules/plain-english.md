@@ -1,7 +1,7 @@
 ---
 description: >-
-  Plain English for Atlas docs read by second-language readers. Applies to
-  TRD, TRD-Testing, review text, PR bodies, chat replies, and other Atlas
+  Plain English for Jarvis docs read by second-language readers. Applies to
+  TRD, TRD-Testing, review text, PR bodies, chat replies, and other Jarvis
   docs. Based on ASD-STE100 Issue 9 writing rules (not the dictionary).
 ---
 
@@ -34,7 +34,7 @@ Readers use English as a second language. Write so they read it once.
 
 ## Scope
 
-- Applies to: TRD, TRD-Testing, review text, PR bodies, chat replies, other Atlas docs.
+- Applies to: TRD, TRD-Testing, review text, PR bodies, chat replies, other Jarvis docs.
 - Chat replies: apply all rules 1 to 12 as written, including rule 5 (no contractions).
 - Not: code, code comments, commit subjects, quoted third-party test text.
 - Review: style problems are Nits only, never blockers (a step too unclear to run is already a normal blocker).

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/install"
-	"github.com/christianwijasabfi/atlas/internal/upstream"
-	"github.com/christianwijasabfi/atlas/skills"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/install"
+	"github.com/christianwijasa/jarvis/internal/upstream"
+	"github.com/christianwijasa/jarvis/skills"
 	"github.com/spf13/cobra"
 )
 
@@ -22,12 +22,12 @@ func newSkillsCmd() *cobra.Command {
 available to install. Shows global and local paths.
 
 Does not prompt. Pass --json for a schema_version object.
-Load one skill body with: atlas skills show <name>`,
-		Example: `  atlas skills
-  atlas skills --json
-  atlas skills show grilling
-  atlas skills install archify
-  atlas skills remove archify`,
+Load one skill body with: jarvis skills show <name>`,
+		Example: `  jarvis skills
+  jarvis skills --json
+  jarvis skills show grilling
+  jarvis skills install archify
+  jarvis skills remove archify`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			rep, err := buildSkillsReport()
@@ -50,7 +50,7 @@ type skillsReport struct {
 	SchemaVersion string      `json:"schema_version"`
 	Kind          string      `json:"kind"`
 	SkillPack     string      `json:"skill_pack"`
-	AtlasHome     string      `json:"atlas_home,omitempty"`
+	JarvisHome    string      `json:"jarvis_home,omitempty"`
 	Scope         string      `json:"scope,omitempty"`
 	LocalDir      string      `json:"local_dir,omitempty"`
 	Installed     []skillItem `json:"installed"`
@@ -85,7 +85,7 @@ func buildSkillsReport() (*skillsReport, error) {
 		Available:     []skillItem{},
 	}
 	if home, err := config.HomeDir(cfg); err == nil {
-		rep.AtlasHome = home
+		rep.JarvisHome = home
 	}
 	if cfg != nil {
 		rep.Scope = cfg.Skills.Scope
@@ -112,8 +112,8 @@ func buildSkillsReport() (*skillsReport, error) {
 func printSkillsText(cmd *cobra.Command, rep *skillsReport) {
 	out := cmd.OutOrStdout()
 	fmt.Fprintf(out, "Skill pack %s (catalog in upstream.yaml)\n", rep.SkillPack)
-	if rep.AtlasHome != "" {
-		fmt.Fprintf(out, "ATLAS_HOME %s\n", rep.AtlasHome)
+	if rep.JarvisHome != "" {
+		fmt.Fprintf(out, "JARVIS_HOME %s\n", rep.JarvisHome)
 	}
 	if rep.Scope != "" {
 		fmt.Fprintf(out, "scope %s  local_dir %s\n", rep.Scope, rep.LocalDir)
@@ -175,12 +175,12 @@ func newSkillsShowCmd() *cobra.Command {
 		Use:   "show <name>",
 		Short: "Print an installed or bundled skill",
 		Long: `Print SKILL.md for a named skill. Prefer the installed copy under
-$ATLAS_HOME, else bundled text. Vendored skills must be installed first.
+$JARVIS_HOME, else bundled text. Vendored skills must be installed first.
 
 This is how an agent should load a skill. Does not prompt. --json wraps
 the body with schema_version.`,
-		Example: `  atlas skills show grilling
-  atlas skills show grilling --json`,
+		Example: `  jarvis skills show grilling
+  jarvis skills show grilling --json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
@@ -202,7 +202,7 @@ the body with schema_version.`,
 			if body == "" {
 				reg, _ := upstream.Load()
 				if e, ok := reg.Skill(name); ok && e.Mode == upstream.ModeVendored {
-					return fmt.Errorf("skill %q is not installed; run: atlas skills install %s", name, name)
+					return fmt.Errorf("skill %q is not installed; run: jarvis skills install %s", name, name)
 				}
 				return fmt.Errorf("unknown skill %q", name)
 			}
@@ -244,10 +244,10 @@ func newSkillsInstallCmd() *cobra.Command {
 binary. Vendored skills are fetched at the pinned commit in upstream.yaml
 (git or gh tarball). Never follows HEAD or main.
 
-Requires atlas.yaml. Does not prompt. Use --copy to copy into the project
+Requires jarvis.yaml. Does not prompt. Use --copy to copy into the project
 instead of symlink.`,
-		Example: `  atlas skills install grilling
-  atlas skills install archify --copy`,
+		Example: `  jarvis skills install grilling
+  jarvis skills install archify --copy`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, projectRoot, cfgPath, err := requireProjectConfig()
@@ -291,10 +291,10 @@ instead of symlink.`,
 func newSkillsRemoveCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "remove <name>",
-		Short: "Remove an installed skill from ATLAS_HOME and the project local dir",
-		Long: `Delete $ATLAS_HOME/skills/<name> and the project-local link or copy.
-Updates skills.installed in atlas.yaml. Does not prompt.`,
-		Example: `  atlas skills remove archify`,
+		Short: "Remove an installed skill from JARVIS_HOME and the project local dir",
+		Long: `Delete $JARVIS_HOME/skills/<name> and the project-local link or copy.
+Updates skills.installed in jarvis.yaml. Does not prompt.`,
+		Example: `  jarvis skills remove archify`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, projectRoot, cfgPath, err := requireProjectConfig()
@@ -326,8 +326,8 @@ upstream path (gh api, or git ls-remote if gh fails).
 This command never copies, merges, or rewrites skills. Adopting an
 update is a manual, reviewed pull request. Install always uses the
 pin, never latest. Does not prompt.`,
-		Example: `  atlas skills upstream
-  atlas skills upstream --json`,
+		Example: `  jarvis skills upstream
+  jarvis skills upstream --json`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			reg, err := upstream.Load()
@@ -437,7 +437,7 @@ func loadProjectConfig() (*config.Config, string, string) {
 func requireProjectConfig() (*config.Config, string, string, error) {
 	path, err := config.Find("")
 	if err != nil {
-		return nil, "", "", fmt.Errorf("atlas.yaml not found; run atlas init")
+		return nil, "", "", fmt.Errorf("jarvis.yaml not found; run jarvis init")
 	}
 	cfg, err := config.Load(path)
 	if err != nil {

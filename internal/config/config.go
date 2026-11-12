@@ -12,17 +12,17 @@ import (
 )
 
 const (
-	FileName        = "atlas.yaml"
+	FileName        = "jarvis.yaml"
 	DefaultLocalDir = ".agents/skills"
 	ScopeGlobal     = "global"
 	ScopeLocal      = "local"
 	ScopeBoth       = "both"
 )
 
-// ErrNotFound means no atlas.yaml was found in the current directory or parents.
-var ErrNotFound = errors.New("atlas.yaml not found")
+// ErrNotFound means no jarvis.yaml was found in the current directory or parents.
+var ErrNotFound = errors.New("jarvis.yaml not found")
 
-// Config is the project-specific file Atlas reads. The CLI itself stays
+// Config is the project-specific file Jarvis reads. The CLI itself stays
 // tool-agnostic; tracker site, history path, and repo map belong here.
 type Config struct {
 	Tracker Tracker           `yaml:"tracker,omitempty"`
@@ -36,7 +36,7 @@ type Config struct {
 }
 
 // Tracker is optional policy for a work-item system (Jira, Trello, …).
-// Atlas never stores a token here and never calls the tracker API.
+// Jarvis never stores a token here and never calls the tracker API.
 type Tracker struct {
 	Kind    string `yaml:"kind,omitempty" json:"kind,omitempty"`
 	Site    string `yaml:"site,omitempty" json:"site,omitempty"`
@@ -44,7 +44,7 @@ type Tracker struct {
 	MCP     string `yaml:"mcp,omitempty" json:"mcp,omitempty"`
 }
 
-// Jira is a deprecated atlas.yaml alias for Tracker (kind jira).
+// Jira is a deprecated jarvis.yaml alias for Tracker (kind jira).
 type Jira struct {
 	Site    string `yaml:"site,omitempty"`
 	Project string `yaml:"project,omitempty"`
@@ -88,7 +88,7 @@ type Skills struct {
 }
 
 // Find walks from start (or the current working directory) up toward
-// the filesystem root looking for atlas.yaml. It returns the absolute
+// the filesystem root looking for jarvis.yaml. It returns the absolute
 // path of the first match.
 func Find(start string) (string, error) {
 	dir := start
@@ -153,7 +153,7 @@ func Write(path string, cfg *Config) error {
 	cfg.Skills.Normalize()
 	cfg.mergeDeprecatedJira()
 	var b strings.Builder
-	b.WriteString("# Project settings for Atlas. TRDs belong in history.path, not here.\n")
+	b.WriteString("# Project settings for Jarvis. TRDs belong in history.path, not here.\n")
 	enc := yaml.NewEncoder(&b)
 	enc.SetIndent(2)
 	if err := enc.Encode(cfg); err != nil {
@@ -165,7 +165,7 @@ func Write(path string, cfg *Config) error {
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }
 
-// ExampleYAML is the commented template copied by `atlas init` before
+// ExampleYAML is the commented template copied by `jarvis init` before
 // the chosen skill list is written back.
 func ExampleYAML() []byte {
 	return exampleYAML
@@ -225,9 +225,9 @@ func (s *Skills) Remove(name string) {
 	s.Installed = out
 }
 
-// HomeDir is $ATLAS_HOME, else skills.home from yaml, else ~/.atlas.
+// HomeDir is $JARVIS_HOME, else skills.home from yaml, else ~/.jarvis.
 func HomeDir(cfg *Config) (string, error) {
-	if v := strings.TrimSpace(os.Getenv("ATLAS_HOME")); v != "" {
+	if v := strings.TrimSpace(os.Getenv("JARVIS_HOME")); v != "" {
 		return filepath.Abs(expandHome(v))
 	}
 	if cfg != nil {
@@ -239,7 +239,7 @@ func HomeDir(cfg *Config) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".atlas"), nil
+	return filepath.Join(home, ".jarvis"), nil
 }
 
 func GlobalSkillsDir(cfg *Config) (string, error) {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/upstream"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/upstream"
 )
 
 func TestAssertPinned(t *testing.T) {
@@ -59,7 +59,7 @@ func TestGitFetchUsesPinNotMain(t *testing.T) {
 
 func TestInstallBundledAndVendored(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	project := t.TempDir()
 	cfg := &config.Config{Skills: config.Skills{Scope: config.ScopeBoth, LocalDir: ".agents/skills"}}
 	cfg.Skills.Normalize()
@@ -131,7 +131,7 @@ func TestInstallBundledAndVendored(t *testing.T) {
 
 func TestCheckLinksBroken(t *testing.T) {
 	home := t.TempDir()
-	t.Setenv("ATLAS_HOME", home)
+	t.Setenv("JARVIS_HOME", home)
 	project := t.TempDir()
 	cfg := &config.Config{Skills: config.Skills{
 		Scope:     config.ScopeBoth,

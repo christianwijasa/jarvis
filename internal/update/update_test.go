@@ -13,13 +13,13 @@ import (
 )
 
 func TestApplyAlreadyLatestSkipsDownload(t *testing.T) {
-	dest := filepath.Join(t.TempDir(), "atlas")
+	dest := filepath.Join(t.TempDir(), "jarvis")
 	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	c, calls := fakeGH(t, "v0.1.0", map[string][]byte{"atlas-darwin-arm64": []byte("newbin")})
+	c, calls := fakeGH(t, "v0.1.0", map[string][]byte{"jarvis-darwin-arm64": []byte("newbin")})
 	res, err := c.Apply(Options{
-		Repo:    "example/atlas",
+		Repo:    "example/jarvis",
 		Current: "v0.1.0",
 		Dest:    dest,
 		GOOS:    "darwin",
@@ -43,16 +43,16 @@ func TestApplyAlreadyLatestSkipsDownload(t *testing.T) {
 }
 
 func TestApplyDevUpgradesEvenIfTagLooksSame(t *testing.T) {
-	dest := filepath.Join(t.TempDir(), "atlas")
+	dest := filepath.Join(t.TempDir(), "jarvis")
 	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	payload := []byte("newbin")
 	sum := sha256.Sum256(payload)
-	sums := hex.EncodeToString(sum[:]) + "  atlas-darwin-arm64\n"
+	sums := hex.EncodeToString(sum[:]) + "  jarvis-darwin-arm64\n"
 	c, _ := fakeGH(t, "v0.1.0", map[string][]byte{
-		"atlas-darwin-arm64": payload,
-		"SHA256SUMS":         []byte(sums),
+		"jarvis-darwin-arm64": payload,
+		"SHA256SUMS":          []byte(sums),
 	})
 	res, err := c.Apply(Options{
 		Current: "dev",
@@ -73,11 +73,11 @@ func TestApplyDevUpgradesEvenIfTagLooksSame(t *testing.T) {
 }
 
 func TestApplyProgressOmitsResultLine(t *testing.T) {
-	dest := filepath.Join(t.TempDir(), "atlas")
+	dest := filepath.Join(t.TempDir(), "jarvis")
 	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	c, _ := fakeGH(t, "v0.1.3", map[string][]byte{"atlas-darwin-arm64": []byte("newbin")})
+	c, _ := fakeGH(t, "v0.1.3", map[string][]byte{"jarvis-darwin-arm64": []byte("newbin")})
 	var prog strings.Builder
 	res, err := c.Apply(Options{
 		Current:  "dev",
@@ -102,11 +102,11 @@ func TestApplyProgressOmitsResultLine(t *testing.T) {
 }
 
 func TestApplyCheckDoesNotWrite(t *testing.T) {
-	dest := filepath.Join(t.TempDir(), "atlas")
+	dest := filepath.Join(t.TempDir(), "jarvis")
 	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	c, calls := fakeGH(t, "v0.2.0", map[string][]byte{"atlas-linux-amd64": []byte("x")})
+	c, calls := fakeGH(t, "v0.2.0", map[string][]byte{"jarvis-linux-amd64": []byte("x")})
 	res, err := c.Apply(Options{
 		Check:   true,
 		Current: "dev",
@@ -132,25 +132,25 @@ func TestApplyCheckDoesNotWrite(t *testing.T) {
 }
 
 func TestApplyMissingAsset(t *testing.T) {
-	dest := filepath.Join(t.TempDir(), "atlas")
+	dest := filepath.Join(t.TempDir(), "jarvis")
 	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	c, _ := fakeGH(t, "v0.1.0", map[string][]byte{"atlas-linux-amd64": []byte("x")})
+	c, _ := fakeGH(t, "v0.1.0", map[string][]byte{"jarvis-linux-amd64": []byte("x")})
 	_, err := c.Apply(Options{Current: "dev", Dest: dest, GOOS: "darwin", GOARCH: "arm64"})
-	if err == nil || !strings.Contains(err.Error(), "no asset atlas-darwin-arm64") {
+	if err == nil || !strings.Contains(err.Error(), "no asset jarvis-darwin-arm64") {
 		t.Fatalf("err %v", err)
 	}
 }
 
 func TestApplyChecksumMismatch(t *testing.T) {
-	dest := filepath.Join(t.TempDir(), "atlas")
+	dest := filepath.Join(t.TempDir(), "jarvis")
 	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	c, _ := fakeGH(t, "v0.1.0", map[string][]byte{
-		"atlas-darwin-arm64": []byte("newbin"),
-		"SHA256SUMS":         []byte("0000000000000000000000000000000000000000000000000000000000000000  atlas-darwin-arm64\n"),
+		"jarvis-darwin-arm64": []byte("newbin"),
+		"SHA256SUMS":          []byte("0000000000000000000000000000000000000000000000000000000000000000  jarvis-darwin-arm64\n"),
 	})
 	_, err := c.Apply(Options{Current: "dev", Dest: dest, GOOS: "darwin", GOARCH: "arm64"})
 	if err == nil || !strings.Contains(err.Error(), "checksum mismatch") {
@@ -169,7 +169,7 @@ func TestApplyNoReleases(t *testing.T) {
 			return nil, errors.New("HTTP 404")
 		},
 	}
-	_, err := c.Apply(Options{Current: "dev", Dest: filepath.Join(t.TempDir(), "atlas")})
+	_, err := c.Apply(Options{Current: "dev", Dest: filepath.Join(t.TempDir(), "jarvis")})
 	if err == nil || !strings.Contains(err.Error(), "no GitHub Releases") {
 		t.Fatalf("err %v", err)
 	}

@@ -106,7 +106,7 @@ func (e Entry) PinnedKnown() bool {
 	return p != "" && !strings.EqualFold(p, "unknown")
 }
 
-// Bundled is true when Atlas ships the skill text in this repo (original or adapted).
+// Bundled is true when Jarvis ships the skill text in this repo (original or adapted).
 func (e Entry) Bundled() bool {
 	return e.Kind == KindSkill && e.Mode != ModeVendored && strings.TrimSpace(e.LocalPath) != ""
 }

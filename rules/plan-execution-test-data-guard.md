@@ -1,14 +1,14 @@
 ---
 description: >-
   Load when a change depends on seeded test data. Trigger: development
-  skill. Honours atlas.yaml gates.test_data.
+  skill. Honours jarvis.yaml gates.test_data.
 ---
 
 # Plan execution — test data setup gate
 
 ## Scope
 
-Run when `atlas.yaml` has `gates.test_data: true`. Skip entirely when
+Run when `jarvis.yaml` has `gates.test_data: true`. Skip entirely when
 that flag is false.
 
 **Trigger:** you are about to edit **data-dependent** artifacts for a

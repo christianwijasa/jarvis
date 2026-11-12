@@ -1,6 +1,6 @@
 # Flutter conventions
 
-Scope: Flutter apps listed in `atlas.yaml` `repos`. Complements the
+Scope: Flutter apps listed in `jarvis.yaml` `repos`. Complements the
 client coverage gate in [`SKILL.md`](../SKILL.md).
 
 ## Code style

@@ -1,8 +1,8 @@
-# Project settings for Atlas. This file stays in the working repo.
-# Design documents (TRDs) are not stored here; Atlas writes them into
+# Project settings for Jarvis. This file stays in the working repo.
+# Design documents (TRDs) are not stored here; Jarvis writes them into
 # the history repo configured below.
 
-# Optional policy. Atlas never calls the tracker and never stores tokens here.
+# Optional policy. Jarvis never calls the tracker and never stores tokens here.
 tracker:
   kind: jira    # jira | trello | github | linear | other
   site: https://example.atlassian.net
@@ -10,11 +10,11 @@ tracker:
 
 # Separate git repo that holds team TRD history.
 history:
-  path: ../atlas-history
+  path: ../jarvis-history
   # owner/name on GitHub, used when listing history-repo PRs
-  github: example/atlas-history
+  github: example/jarvis-history
 
-# Local checkouts Atlas may mention in a TRD. Keys are short names.
+# Local checkouts Jarvis may mention in a TRD. Keys are short names.
 repos:
   api: ../api
   web: ../web
@@ -33,12 +33,12 @@ gates:
   client_coverage_percent: 80
 
 # Active named project (group of repos). Files live under
-# $ATLAS_HOME/projects/<name>/project.yaml. Leave empty if unused.
+# $JARVIS_HOME/projects/<name>/project.yaml. Leave empty if unused.
 project: ""
 
-# Skills are optional. Canonical copies live in $ATLAS_HOME/skills
-# (default ~/.atlas/skills). scope: global | local | both.
-# local_dir is where agents in this repo look; Atlas links that
+# Skills are optional. Canonical copies live in $JARVIS_HOME/skills
+# (default ~/.jarvis/skills). scope: global | local | both.
+# local_dir is where agents in this repo look; Jarvis links that
 # folder to the global install unless copy: true.
 skills:
   scope: both

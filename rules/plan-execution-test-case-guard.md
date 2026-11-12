@@ -1,21 +1,21 @@
 ---
 description: >-
   Load when implementing from a TRD: readable test cases (TRD-Testing, Jira,
-  paste or path). Trigger: development skill. Honours atlas.yaml gates.test_case.
+  paste or path). Trigger: development skill. Honours jarvis.yaml gates.test_case.
 ---
 
 # Plan execution — test case gate
 
 ## Scope
 
-Run this gate when `atlas.yaml` has `gates.test_case: true` (the example
+Run this gate when `jarvis.yaml` has `gates.test_case: true` (the example
 config turns it on). Skip the entire rule when that flag is false.
 
 **Trigger:** the user asks to **implement**, **execute the plan**, **start
 coding from TRD**, **apply TRD**, or you are about to edit **production
-code** in any repo listed in `atlas.yaml` `repos` for a Jira-backed
+code** in any repo listed in `jarvis.yaml` `repos` for a Jira-backed
 feature. Respect **story tier** from the TRD frontmatter (and
-`atlas.yaml` `tiers`).
+`jarvis.yaml` `tiers`).
 
 **Hard stop:** do not edit production code for that feature until
 **readable test cases** are loaded. Planning-only work (TRD authoring,
@@ -36,7 +36,7 @@ Accept any **one** of:
 | -------------------------- | ----------- |
 | **History-repo `TRD-Testing.md`** | `<history.path>/docs/plans/<JIRA-KEY>/TRD-Testing.md` (parent story key when the branch uses a sub-task) with filled traceability and/or functional scenarios. |
 | **Current user message**   | User pasted test cases or a full scenario table in the prompt. |
-| **Jira key (user or TRD)** | User names a key, or the TRD links a test-case issue; fetch from the site in `atlas.yaml` `jira.site`. |
+| **Jira key (user or TRD)** | User names a key, or the TRD links a test-case issue; fetch from the site in `jarvis.yaml` `jira.site`. |
 | **Explicit path or URL**   | User gives a file path, wiki page, or export the agent can read. |
 
 A `TRD-Testing.md` counts once it is **merged** on the history repo

@@ -37,7 +37,7 @@ func checkOne(e Entry, remote Remote) Result {
 	r := Result{Entry: e, Pinned: displayPin(e.PinnedCommit)}
 	if e.Mode == ModeOriginal || !e.HasUpstream() {
 		r.Status = "original"
-		r.Detail = "no upstream; Atlas-written"
+		r.Detail = "no upstream; Jarvis-written"
 		return r
 	}
 	if !e.PinnedKnown() {

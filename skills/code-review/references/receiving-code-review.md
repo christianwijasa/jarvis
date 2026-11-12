@@ -6,7 +6,7 @@ Copyright (c) 2025 Jesse Vincent. See LICENSES/superpowers-MIT.txt.
 
 # Receiving code review (author side)
 
-For the **PR author** acting on review comments: an Atlas review, another
+For the **PR author** acting on review comments: an Jarvis review, another
 agent, or a human reviewer. The reviewer side is [`../SKILL.md`](../SKILL.md).
 Load on demand when a review lands on your PR.
 

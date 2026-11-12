@@ -5,7 +5,7 @@ description: "Karpathy-inspired coding guidelines: think before coding, simplici
 <!--
 Adapted from https://github.com/multica-ai/andrej-karpathy-skills
 skills/karpathy-guidelines/SKILL.md (main at 2c606141936f1eeef17fa3043a72095b4765b9c2).
-Licence unknown: that repo has no LICENSE file. Atlas added the ponytail pairing line.
+Licence unknown: that repo has no LICENSE file. Jarvis added the ponytail pairing line.
 -->
 
 # Karpathy-inspired coding guidelines

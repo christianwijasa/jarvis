@@ -1,10 +1,10 @@
 ---
 name: development
 description: >-
-  Coding standards (Karpathy + Ponytail) for repos listed in atlas.yaml.
+  Coding standards (Karpathy + Ponytail) for repos listed in jarvis.yaml.
   Use when implementing features, fixing bugs, refactoring, or reviewing
   diffs. Before coding, the test case gate must pass when enabled. Meet
-  coverage gates from atlas.yaml before opening a PR. Failing test first
+  coverage gates from jarvis.yaml before opening a PR. Failing test first
   for Tier A state, race and ordering logic.
 ---
 
@@ -19,7 +19,7 @@ the hub snapshot; LICENSES/ in this repo.
 
 # Development
 
-Applies to every repo named in `atlas.yaml` `repos`. This CLI is the
+Applies to every repo named in `jarvis.yaml` `repos`. This CLI is the
 skill source; product code lives in those checkouts. TRDs live in
 `history.path`.
 
@@ -34,14 +34,14 @@ Karpathy runs first (understand, plan, verify). Ponytail ladder runs
 **after** you trace the real flow — not instead of reading the code.
 
 Match style and patterns of the repo you are editing. Paths come from
-`atlas.yaml` `repos`. Do not assume a home-directory layout.
+`jarvis.yaml` `repos`. Do not assume a home-directory layout.
 
 ## Implementation workflow
 
 0. **Record source baseline** — inspect the selected checkout and preserve unrelated changes. Fetch/pull/checkout/rebase only under explicit authorized scope.
 
 1. **Plan** — TRD doc exists or user waived; see [`trd-pr-planning`](../trd-pr-planning/SKILL.md).
-2. **Test case gate** — when `atlas.yaml` `gates.test_case` is true, load [`plan-execution-test-case-guard`](../../rules/plan-execution-test-case-guard.md). Read `tier` / `test_source` from plan frontmatter. **Hard stop** when the gate applies and checks fail. If the user waives, add `test-case-gate:` in-code notes.
+2. **Test case gate** — when `jarvis.yaml` `gates.test_case` is true, load [`plan-execution-test-case-guard`](../../rules/plan-execution-test-case-guard.md). Read `tier` / `test_source` from plan frontmatter. **Hard stop** when the gate applies and checks fail. If the user waives, add `test-case-gate:` in-code notes.
 3. **Test data setup gate** — when `gates.test_data` is true, load [`plan-execution-test-data-guard`](../../rules/plan-execution-test-data-guard.md) before data-dependent edits.
 4. **Understand** — TRD + graph query ([graph-first-analysis](../../rules/graph-first-analysis.md)): map the story to code, then read **only** files/lines at cited locations (plus files you will edit). Trace end-to-end along that path. State assumptions or ask.
 5. **Climb ponytail ladder** — stop at first rung that holds.
@@ -54,7 +54,7 @@ Match style and patterns of the repo you are editing. Paths come from
 
 ## Coverage gates
 
-Read percents from `atlas.yaml`:
+Read percents from `jarvis.yaml`:
 
 - `gates.backend_coverage_percent` (example: 100) on changed non-excluded production logic in backend repos
 - `gates.client_coverage_percent` (example: 80) on changed production logic in client apps

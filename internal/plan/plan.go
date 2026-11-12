@@ -9,9 +9,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/christianwijasabfi/atlas/internal/config"
-	"github.com/christianwijasabfi/atlas/internal/project"
-	"github.com/christianwijasabfi/atlas/templates"
+	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/project"
+	"github.com/christianwijasa/jarvis/templates"
 )
 
 var keyPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`)
@@ -100,7 +100,7 @@ func Run(req Request) (*Result, error) {
 	source := SourceOf(req.Tracker, req.TokenSet)
 	testSource := "tracker:" + req.Key
 	if strings.EqualFold(tier, "A") {
-		testSource = "atlas:TRD-Testing"
+		testSource = "jarvis:TRD-Testing"
 	} else if source == SourceUser {
 		testSource = "user-prompt"
 	}
@@ -178,7 +178,7 @@ func selectRepos(selected, yamlRepos []string) ([]string, error) {
 	yamlRepos = uniqueKeep(yamlRepos)
 	if len(selected) == 0 {
 		if len(yamlRepos) > 1 {
-			return nil, fmt.Errorf("atlas.yaml has more than one repo; pass --repo for each target")
+			return nil, fmt.Errorf("jarvis.yaml has more than one repo; pass --repo for each target")
 		}
 		return yamlRepos, nil
 	}
@@ -193,7 +193,7 @@ func selectRepos(selected, yamlRepos []string) ([]string, error) {
 			continue
 		}
 		if len(yamlSet) > 0 && !yamlSet[n] {
-			return nil, fmt.Errorf("repo %q is not in atlas.yaml repos", n)
+			return nil, fmt.Errorf("repo %q is not in jarvis.yaml repos", n)
 		}
 		out = append(out, n)
 	}
@@ -267,7 +267,7 @@ func uniqueKeep(in []string) []string {
 	return out
 }
 
-// RepoKeys returns sorted atlas.yaml repo names.
+// RepoKeys returns sorted jarvis.yaml repo names.
 func RepoKeys(repos map[string]string) []string {
 	var keys []string
 	for k := range repos {
@@ -279,7 +279,7 @@ func RepoKeys(repos map[string]string) []string {
 
 func HistoryRoot(cfgPath string, cfg *config.Config) (string, error) {
 	if cfg == nil || strings.TrimSpace(cfg.History.Path) == "" {
-		return "", fmt.Errorf("history.path is empty in atlas.yaml")
+		return "", fmt.Errorf("history.path is empty in jarvis.yaml")
 	}
 	root, err := config.AbsPath(filepath.Dir(cfgPath), cfg.History.Path)
 	if err != nil {
