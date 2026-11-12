@@ -471,6 +471,10 @@ prefixes node ids with the repo name (parent.parent of each graph.json).
 --update re-runs extract (incremental if a previous extract exists).
 --repos a,b limits which members are extracted and merged.
 
+If extract --out is empty or fails, Atlas copies that repo's in-repo
+graphify-out/graph.json when present, otherwise skips the repo and
+continues. Combined output stays under $ATLAS_HOME/projects/<name>/.
+
 Progress (extract i/n <repo>, merge n graphs) and live graphify logs go
 to stderr. Success is one stdout line with the combined graph path.`,
 		Example: `  atlas project graph shop

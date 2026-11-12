@@ -95,17 +95,35 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 			_ = update
 		}
 		writeProgress("extract %d/%d %s\n", i+1, n, r.Name)
-		if err := GraphifyRun(args...); err != nil {
-			return res, fmt.Errorf("extract %s (%d/%d): %w", r.Name, i+1, n, err)
+		extractErr := GraphifyRun(args...)
+		destGraph := filepath.Join(outDir, "graphify-out", "graph.json")
+		if extractErr != nil || !graphJSONUsable(destGraph) {
+			inRepo := filepath.Join(abs, "graphify-out", "graph.json")
+			if graphJSONUsable(inRepo) {
+				writeProgress("extract %d/%d %s: empty --out extract; using in-repo graphify-out\n", i+1, n, r.Name)
+				if err := copyGraphJSON(inRepo, destGraph); err != nil {
+					return res, fmt.Errorf("extract %s (%d/%d): copy in-repo graph: %w", r.Name, i+1, n, err)
+				}
+			} else {
+				if extractErr != nil {
+					writeProgress("extract %d/%d %s: extract failed; skipping (no in-repo graphify-out)\n", i+1, n, r.Name)
+				} else {
+					writeProgress("extract %d/%d %s: empty --out extract; skipping (no in-repo graphify-out)\n", i+1, n, r.Name)
+				}
+				continue
+			}
 		}
 		res.Extracts = append(res.Extracts, strings.Join(args, " "))
 		res.Repos = append(res.Repos, r.Name)
-		graphFiles = append(graphFiles, filepath.Join(outDir, "graphify-out", "graph.json"))
+		graphFiles = append(graphFiles, destGraph)
+	}
+	if len(graphFiles) == 0 {
+		return res, fmt.Errorf("project %s: no usable graphs after extract", p.Name)
 	}
 	if len(graphFiles) == 1 {
 		// merge-graphs needs two or more inputs; prefix the single extract
 		// the same way (repo name as node-id prefix).
-		if err := prefixGraphFile(graphFiles[0], graphJSON, selected[0].Name); err != nil {
+		if err := prefixGraphFile(graphFiles[0], graphJSON, res.Repos[0]); err != nil {
 			return res, err
 		}
 	} else {
@@ -115,7 +133,7 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 		}
 		args := append([]string{"merge-graphs"}, graphFiles...)
 		args = append(args, "--out", graphJSON)
-		writeProgress("merge %d graphs\n", n)
+		writeProgress("merge %d graphs\n", len(graphFiles))
 		if err := GraphifyRun(args...); err != nil {
 			return res, fmt.Errorf("merge %d graphs: %w", n, err)
 		}
@@ -146,6 +164,31 @@ func selectRepos(p *Project, filter []string) ([]Repo, error) {
 		out = append(out, r)
 	}
 	return out, nil
+}
+
+func graphJSONUsable(path string) bool {
+	raw, err := os.ReadFile(path)
+	if err != nil || len(strings.TrimSpace(string(raw))) == 0 {
+		return false
+	}
+	var data struct {
+		Nodes []any `json:"nodes"`
+	}
+	if err := json.Unmarshal(raw, &data); err != nil {
+		return true
+	}
+	return len(data.Nodes) > 0
+}
+
+func copyGraphJSON(src, dest string) error {
+	raw, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(dest, raw, 0o644)
 }
 
 func prefixGraphFile(src, dest, tag string) error {

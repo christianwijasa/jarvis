@@ -136,7 +136,7 @@ func TestBuildGraphUsesExtractOutAndMerge(t *testing.T) {
 	}
 }
 
-func TestBuildGraphExtractFailureSkipsMerge(t *testing.T) {
+func TestBuildGraphExtractFailureSkipsRepoAndMergesRest(t *testing.T) {
 	_ = withHome(t)
 	cart := t.TempDir()
 	pay := t.TempDir()
@@ -149,23 +149,117 @@ func TestBuildGraphExtractFailureSkipsMerge(t *testing.T) {
 	}
 
 	calls := stubGraphify(t, "payment-service")
-	Progress = io.Discard
+	var prog bytes.Buffer
+	Progress = &prog
 
 	loaded, _ := Load("shop")
-	_, err := BuildGraph(loaded, nil, false)
-	if err == nil {
-		t.Fatal("expected extract error")
+	res, err := BuildGraph(loaded, nil, false)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if !strings.Contains(err.Error(), "extract payment-service (2/2)") {
-		t.Fatalf("error %v", err)
+	if len(res.Repos) != 1 || res.Repos[0] != "cart-service" {
+		t.Fatalf("repos %v", res.Repos)
 	}
 	for _, c := range *calls {
 		if len(c) > 0 && c[0] == "merge-graphs" {
-			t.Fatalf("merge should not run: %v", *calls)
+			t.Fatalf("single leftover graph should prefix, not merge: %v", *calls)
 		}
 	}
-	if len(*calls) != 2 {
-		t.Fatalf("want 2 extracts, got %v", *calls)
+	if !strings.Contains(prog.String(), "skipping (no in-repo graphify-out)") {
+		t.Fatalf("progress:\n%s", prog.String())
+	}
+	raw, err := os.ReadFile(res.GraphJSON)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), "cart-service:svc") {
+		t.Fatalf("%s", raw)
+	}
+}
+
+func TestBuildGraphExtractFallbackUsesInRepoGraph(t *testing.T) {
+	_ = withHome(t)
+	cart := t.TempDir()
+	pay := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(pay, "graphify-out"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	body, _ := json.Marshal(map[string]any{
+		"nodes": []map[string]string{{"id": "pay"}},
+		"links": []any{},
+	})
+	if err := os.WriteFile(filepath.Join(pay, "graphify-out", "graph.json"), body, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	p := &Project{Name: "shop", Repos: []Repo{
+		{Name: "cart-service", Path: cart},
+		{Name: "payment-service", Path: pay},
+	}}
+	if err := Save(p); err != nil {
+		t.Fatal(err)
+	}
+
+	calls := stubGraphify(t, "payment-service")
+	var prog bytes.Buffer
+	Progress = &prog
+
+	loaded, _ := Load("shop")
+	res, err := BuildGraph(loaded, nil, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Repos) != 2 {
+		t.Fatalf("repos %v", res.Repos)
+	}
+	if (*calls)[len(*calls)-1][0] != "merge-graphs" {
+		t.Fatalf("expected merge, got %v", *calls)
+	}
+	if !strings.Contains(prog.String(), "using in-repo graphify-out") {
+		t.Fatalf("progress:\n%s", prog.String())
+	}
+	raw, err := os.ReadFile(res.GraphJSON)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(raw)
+	if !strings.Contains(s, "cart-service:svc") || !strings.Contains(s, "payment-service:pay") {
+		t.Fatalf("merge %s", s)
+	}
+}
+
+func TestBuildGraphAllExtractsEmpty(t *testing.T) {
+	_ = withHome(t)
+	cart := t.TempDir()
+	pay := t.TempDir()
+	p := &Project{Name: "shop", Repos: []Repo{
+		{Name: "cart-service", Path: cart},
+		{Name: "payment-service", Path: pay},
+	}}
+	if err := Save(p); err != nil {
+		t.Fatal(err)
+	}
+
+	calls := stubGraphify(t, "ALL")
+	Progress = io.Discard
+	GraphifyRun = func(args ...string) error {
+		cp := append([]string{}, args...)
+		*calls = append(*calls, cp)
+		if len(args) > 0 && args[0] == "extract" {
+			return errors.New("extract failed")
+		}
+		t.Fatal("merge should not run")
+		return nil
+	}
+
+	loaded, _ := Load("shop")
+	_, err := BuildGraph(loaded, nil, false)
+	if err == nil || !strings.Contains(err.Error(), "no usable graphs") {
+		t.Fatalf("err %v", err)
+	}
+	for _, c := range *calls {
+		if len(c) > 0 && c[0] == "merge-graphs" {
+			t.Fatalf("merge ran: %v", *calls)
+		}
 	}
 }
 

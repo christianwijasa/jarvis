@@ -57,7 +57,7 @@ Rules: shipped under `rules/` in the Atlas CLI repo, not installed per project.
 | `atlas plan <JIRA-KEY>` | Scaffold TRD via `trd-pr-planning` | Stub; no model/Jira |
 | `atlas update` | Latest **tag**, not main | needs `gh`; `--check` / `--json`; never follows `main` |
 | `atlas project list` / `show` / `current` / `graph-path` / `status` | Named repo groups and graph location | `--json` on these reads |
-| `atlas project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; stderr: `extract i/n <repo>` and live graphify logs |
+| `atlas project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; empty extract falls back to in-repo `graphify-out` or skips |
 | `atlas project create` / `add-repo` / `clone` / `use` / `delete` | Mutate project yaml | delete needs `--yes` off TTY; create name is an arg |
 
 ## How to load a skill
@@ -81,7 +81,7 @@ atlas project show shop --json          # includes graph_json and repos[].path
 atlas project graph-path shop --json
 ```
 
-When an active project has a graph, **query that graph first** (for example `graphify query "..." ` with the project's graph path/cwd) before reading files across repos. Build/refresh with `atlas project graph shop`. It prints `extract i/n <repo>` and `merge n graphs` on stderr and streams graphify logs (no GUI). Output is `$ATLAS_HOME/projects/<name>/graphify-out/` (not inside member checkouts). Atlas uses graphify v0.9.15 `extract --out` per repo then `merge-graphs` (node ids prefixed with the repo name).
+When an active project has a graph, **query that graph first** (for example `graphify query "..." ` with the project's graph path/cwd) before reading files across repos. Build/refresh with `atlas project graph shop`. It prints `extract i/n <repo>` and `merge n graphs` on stderr and streams graphify logs (no GUI). Output is `$ATLAS_HOME/projects/<name>/graphify-out/` (not inside member checkouts). Atlas uses graphify v0.9.15 `extract --out` per repo then `merge-graphs` (node ids prefixed with the repo name). An empty or failed `--out` extract copies that repo's in-repo `graphify-out/graph.json` when present, otherwise skips the repo and continues.
 
 Per-repo `graphify-out/` is only for a repo that is **not** in an active project.
 
