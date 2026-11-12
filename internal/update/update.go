@@ -143,7 +143,6 @@ func (c Client) Apply(opts Options) (Result, error) {
 	}
 
 	if !opts.Check && res.Current != "dev" && res.Current == res.Latest {
-		writeProgress(prog, "already %s\n", res.Latest)
 		return res, nil
 	}
 	if opts.Check {
@@ -190,7 +189,6 @@ func (c Client) Apply(opts Options) (Result, error) {
 		return res, err
 	}
 	res.Updated = true
-	writeProgress(prog, "installed %s to %s\n", res.Latest, dest)
 	return res, nil
 }
 

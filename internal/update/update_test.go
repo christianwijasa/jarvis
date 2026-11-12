@@ -72,6 +72,35 @@ func TestApplyDevUpgradesEvenIfTagLooksSame(t *testing.T) {
 	}
 }
 
+func TestApplyProgressOmitsResultLine(t *testing.T) {
+	dest := filepath.Join(t.TempDir(), "atlas")
+	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	c, _ := fakeGH(t, "v0.1.3", map[string][]byte{"atlas-darwin-arm64": []byte("newbin")})
+	var prog strings.Builder
+	res, err := c.Apply(Options{
+		Current:  "dev",
+		Dest:     dest,
+		GOOS:     "darwin",
+		GOARCH:   "arm64",
+		Progress: &prog,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Updated {
+		t.Fatalf("%+v", res)
+	}
+	got := prog.String()
+	if strings.Contains(got, "installed") {
+		t.Fatalf("progress should not print installed (cmd owns that): %q", got)
+	}
+	if !strings.Contains(got, "downloading") {
+		t.Fatalf("expected download progress, got %q", got)
+	}
+}
+
 func TestApplyCheckDoesNotWrite(t *testing.T) {
 	dest := filepath.Join(t.TempDir(), "atlas")
 	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
