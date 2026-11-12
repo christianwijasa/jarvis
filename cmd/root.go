@@ -16,6 +16,9 @@ func NewRootCmd() *cobra.Command {
 		SilenceErrors: true,
 	}
 	cmd.CompletionOptions.DisableDefaultCmd = true
+	cmd.PersistentPreRun = func(c *cobra.Command, _ []string) {
+		nagUpdateIfNeeded(c)
+	}
 	cmd.SetHelpCommand(newHelpCmd())
 	cmd.AddCommand(
 		newVersionCmd(),

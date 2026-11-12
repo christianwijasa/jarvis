@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // DefaultRepo is the GitHub owner/name atlas update queries.
@@ -25,6 +27,7 @@ type Options struct {
 	GOOS     string
 	GOARCH   string
 	Progress io.Writer
+	Timeout  time.Duration
 }
 
 // Result is the outcome of Apply (also the --json payload fields).
@@ -42,11 +45,18 @@ type Client struct {
 	LookPath func(string) (string, error)
 }
 
-func (c Client) run(name string, args ...string) ([]byte, error) {
+func (c Client) run(timeout time.Duration, name string, args ...string) ([]byte, error) {
 	if c.Run != nil {
 		return c.Run(name, args...)
 	}
-	cmd := exec.Command(name, args...)
+	var cmd *exec.Cmd
+	if timeout > 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		cmd = exec.CommandContext(ctx, name, args...)
+	} else {
+		cmd = exec.Command(name, args...)
+	}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		msg := strings.TrimSpace(string(out))
@@ -119,7 +129,7 @@ func (c Client) Apply(opts Options) (Result, error) {
 	prog := opts.progress()
 	writeProgress(prog, "checking latest release of %s\n", repo)
 
-	raw, err := c.run("gh", "release", "view", "--repo", repo, "--json", "tagName,assets")
+	raw, err := c.run(opts.Timeout, "gh", "release", "view", "--repo", repo, "--json", "tagName,assets")
 	if err != nil {
 		return res, fmt.Errorf("no GitHub Releases for %s (tag a v* release first): %w", repo, err)
 	}
@@ -152,7 +162,7 @@ func (c Client) Apply(opts Options) (Result, error) {
 	}
 	defer os.RemoveAll(work)
 
-	if _, err := c.run("gh", "release", "download", res.Latest, "--repo", repo, "--dir", work, "--pattern", asset, "--clobber"); err != nil {
+	if _, err := c.run(opts.Timeout, "gh", "release", "download", res.Latest, "--repo", repo, "--dir", work, "--pattern", asset, "--clobber"); err != nil {
 		return res, err
 	}
 	binPath := filepath.Join(work, asset)
@@ -160,7 +170,7 @@ func (c Client) Apply(opts Options) (Result, error) {
 	if err != nil {
 		return res, fmt.Errorf("read downloaded %s: %w", asset, err)
 	}
-	if _, err := c.run("gh", "release", "download", res.Latest, "--repo", repo, "--dir", work, "--pattern", "SHA256SUMS", "--clobber"); err == nil {
+	if _, err := c.run(opts.Timeout, "gh", "release", "download", res.Latest, "--repo", repo, "--dir", work, "--pattern", "SHA256SUMS", "--clobber"); err == nil {
 		sumBody, err := os.ReadFile(filepath.Join(work, "SHA256SUMS"))
 		if err != nil {
 			return res, err

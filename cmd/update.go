@@ -26,7 +26,13 @@ Needs gh on PATH. Asset names are atlas-<os>-<arch>. Checksums are
 verified when SHA256SUMS is attached to the release.
 
 --check prints current vs latest and downloads nothing.
-Does not prompt. Progress goes to stderr.`,
+This command does not prompt. Progress goes to stderr.
+
+On a human TTY, other commands may offer the same install (zsh-style
+[Y/n]). That nag is skipped without a TTY, with --json, for help
+--agent, when the binary is "dev", and when ATLAS_DISABLE_AUTO_UPDATE
+is set. ATLAS_UPDATE_DAYS (default 13) is the check interval.
+ATLAS_DISABLE_UPDATE_PROMPT applies without asking.`,
 		Example: `  atlas update
   atlas update --check
   atlas update --json`,

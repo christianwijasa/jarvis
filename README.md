@@ -247,6 +247,17 @@ atlas update --check   # current vs latest; no download
 atlas update           # replace this binary
 ```
 
+On a TTY, other commands may offer that same install (the zsh
+`Would you like to update? [Y/n]` pattern). Atlas checks GitHub at
+most once every `ATLAS_UPDATE_DAYS` days (default 13), then asks.
+Yes (the default) replaces the binary and re-runs the original
+command. `n` skips until the next interval.
+
+The offer never appears without a TTY, with `--json`, for
+`atlas help --agent` / `atlas update`, when the binary is `dev`,
+in CI, or when `ATLAS_DISABLE_AUTO_UPDATE=1`.
+`ATLAS_DISABLE_UPDATE_PROMPT=1` installs without asking.
+
 ## Layout
 
 ```

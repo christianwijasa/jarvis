@@ -4,6 +4,7 @@ Stable compact help for AI agents (Cursor, Claude Code, Codex, Copilot, and othe
 Humans can use `atlas --help` and `atlas <cmd> --help`.
 
 Do not prompt the user through Atlas. Never wait on stdin.
+A human TTY may see a zsh-style update offer (`Would you like to update? [Y/n]`). That check is skipped without a TTY, with `--json`, for `help --agent` / `agent-help` / `update`, when the binary version is `dev`, and when `ATLAS_DISABLE_AUTO_UPDATE` is set.
 
 ## What Atlas is
 
@@ -109,7 +110,7 @@ atlas init --yes --project shop
 | 0 | Success |
 | 1 | Error (unknown skill, doctor failed, missing flags, missing atlas.yaml, fetch failed) |
 
-There is no interactive confirmation. Usage mistakes also exit 1.
+Agents never wait on stdin. Usage mistakes also exit 1.
 
 ## JSON (`--json`)
 
