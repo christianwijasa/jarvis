@@ -26,11 +26,12 @@ var (
 // Project is a named group of repositories. Files live under
 // $ATLAS_HOME/projects/<name>/project.yaml.
 type Project struct {
-	SchemaVersion string `yaml:"schema_version" json:"schema_version"`
-	Name          string `yaml:"name" json:"name"`
-	Description   string `yaml:"description,omitempty" json:"description,omitempty"`
-	Repos         []Repo `yaml:"repos" json:"repos"`
-	Graph         Graph  `yaml:"graph,omitempty" json:"graph"`
+	SchemaVersion string         `yaml:"schema_version" json:"schema_version"`
+	Name          string         `yaml:"name" json:"name"`
+	Description   string         `yaml:"description,omitempty" json:"description,omitempty"`
+	Tracker       config.Tracker `yaml:"tracker,omitempty" json:"tracker,omitempty"`
+	Repos         []Repo         `yaml:"repos" json:"repos"`
+	Graph         Graph          `yaml:"graph,omitempty" json:"graph"`
 }
 
 type Repo struct {

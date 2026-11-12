@@ -2,7 +2,9 @@
 # Design documents (TRDs) are not stored here; Atlas writes them into
 # the history repo configured below.
 
-jira:
+# Optional policy. Atlas never calls the tracker and never stores tokens here.
+tracker:
+  kind: jira    # jira | trello | github | linear | other
   site: https://example.atlassian.net
   project: TEAM
 

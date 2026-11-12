@@ -2,48 +2,105 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/christianwijasabfi/atlas/internal/config"
+	"github.com/christianwijasabfi/atlas/internal/plan"
 	"github.com/spf13/cobra"
 )
 
 func newPlanCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "plan <JIRA-KEY>",
-		Short: "Scaffold a TRD into the history repo (not yet implemented)",
-		Long: `Would scaffold a Technical Requirements Document for the given Jira
-issue key into history.path from atlas.yaml, using skill trd-pr-planning.
+	var asJSON, dryRun bool
+	var repos []string
+	var tier, from string
+	cmd := &cobra.Command{
+		Use:   "plan <KEY>",
+		Short: "Find or scaffold a TRD in the history repo",
+		Long: `Find or scaffold Technical Requirements Documents for a work-item key
+under history.path/docs/plans/<KEY>/.
 
-This command does not call a model or the Jira API. It does not prompt.
-Load the skill first with: atlas skills show trd-pr-planning`,
+KEY is tracker-agnostic (Jira key, Trello card id, or any path-safe id).
+This command does not call a model or a tracker API. It does not prompt.
+
+If the active project (or atlas.yaml) has a tracker URL, MCP id, or token,
+JSON source is "tracker" and agents should fetch the ticket via the host MCP.
+Otherwise source is "user" and agents use pasted markdown or --from.
+
+Existing TRD files are never overwritten.`,
 		Example: `  atlas plan TEAM-123
-  atlas skills show trd-pr-planning`,
+  atlas plan TEAM-123 --repo api --tier A --json
+  atlas plan N-1 --from ./requirement.md`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key := args[0]
-			out := cmd.OutOrStdout()
-
-			fmt.Fprintf(out, "Would plan %s using skill trd-pr-planning.\n", key)
-			fmt.Fprintln(out, "This command does not call a model or the Jira API yet.")
-
-			path, err := config.Find("")
+			cfgPath, err := config.Find("")
 			if err != nil {
-				fmt.Fprintln(out, "No atlas.yaml found. History repo path is unknown until you run atlas init or add a config file.")
-				fmt.Fprintln(out, "A later version will copy templates/trd.md into that history repo.")
-				return nil
+				return fmt.Errorf("atlas.yaml not found; run atlas init")
 			}
-
-			cfg, err := config.Load(path)
+			cfg, err := config.Load(cfgPath)
 			if err != nil {
 				return err
 			}
-			history := cfg.History.Path
-			if history == "" {
-				history = "(history.path is empty in atlas.yaml)"
+			history, err := plan.HistoryRoot(cfgPath, cfg)
+			if err != nil {
+				return err
 			}
-			fmt.Fprintf(out, "Using config: %s\n", path)
-			fmt.Fprintf(out, "Would scaffold templates/trd.md into the history repo at %s.\n", history)
+			tracker, tokenSet := plan.ResolveTracker(cfg)
+			tierVal := strings.TrimSpace(tier)
+			if tierVal == "" {
+				tierVal = strings.TrimSpace(cfg.Tiers.Default)
+			}
+			res, err := plan.Run(plan.Request{
+				Key:         key,
+				HistoryRoot: history,
+				YAMLRepos:   plan.RepoKeys(cfg.Repos),
+				Selected:    repos,
+				Tier:        tierVal,
+				Tracker:     tracker,
+				TokenSet:    tokenSet,
+				FromPath:    from,
+				DryRun:      dryRun,
+			})
+			if err != nil {
+				return err
+			}
+			if asJSON {
+				repoList := res.Repos
+				if repoList == nil {
+					repoList = []string{}
+				}
+				return writeJSON(cmd.OutOrStdout(), map[string]any{
+					"schema_version":    SchemaVersion,
+					"kind":              "plan",
+					"issue":             key,
+					"source":            res.Source,
+					"tracker":           res.Tracker.Kind,
+					"tracker_site":      res.Tracker.Site,
+					"tracker_mcp":       res.Tracker.MCP,
+					"tracker_token_set": res.TokenSet,
+					"action":            res.Action,
+					"history_path":      history,
+					"plan_dir":          res.Dir,
+					"tier":              res.Tier,
+					"repos":             repoList,
+					"files":             res.Files,
+				})
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "%s %s  source=%s  dir=%s\n", res.Action, key, res.Source, res.Dir)
+			for _, f := range res.Files {
+				fmt.Fprintf(cmd.OutOrStdout(), "  %s\n", f)
+			}
+			fmt.Fprintln(cmd.OutOrStdout(), "Load grill-with-docs and trd-pr-planning before filling. Do not read project secrets.")
+			if res.Source == plan.SourceTracker && res.Tracker.MCP != "" {
+				fmt.Fprintf(cmd.OutOrStdout(), "Fetch the work item with host MCP %s.\n", res.Tracker.MCP)
+			}
 			return nil
 		},
 	}
+	addJSONFlag(cmd, &asJSON)
+	cmd.Flags().StringArrayVar(&repos, "repo", nil, "repo name from atlas.yaml repos (repeatable)")
+	cmd.Flags().StringVar(&tier, "tier", "", "story tier A, B, or C (default from atlas.yaml)")
+	cmd.Flags().StringVar(&from, "from", "", "copy a requirement file to REQUIREMENT.md")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "print paths without writing")
+	return cmd
 }

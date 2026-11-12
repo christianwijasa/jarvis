@@ -116,13 +116,93 @@ func TestPlanRequiresKey(t *testing.T) {
 	}
 }
 
-func TestPlanPlaceholder(t *testing.T) {
-	out, err := execute(t, "plan", "TEAM-123")
+func TestPlanRequiresConfigAndScaffolds(t *testing.T) {
+	t.Setenv("ATLAS_HOME", t.TempDir())
+	_, err := execute(t, "plan", "TEAM-123")
+	if err == nil {
+		t.Fatal("expected missing atlas.yaml")
+	}
+
+	dir := t.TempDir()
+	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out, "TEAM-123") || !strings.Contains(out, "trd-pr-planning") {
-		t.Fatalf("expected issue key and skill name:\n%s", out)
+	defer os.Chdir(wd)
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	hist := filepath.Join(dir, "hist")
+	if err := os.Mkdir(hist, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfg := &config.Config{
+		History: config.History{Path: "hist"},
+		Repos:   map[string]string{"api": "../api"},
+		Tiers:   config.Tiers{Default: "A"},
+		Skills:  config.Skills{Scope: config.ScopeGlobal},
+		Tracker: config.Tracker{Kind: "jira", Site: "https://example.atlassian.net", MCP: "plugin-atlassian-atlassian"},
+	}
+	if err := config.Write(config.FileName, cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	out, err := execute(t, "plan", "TEAM-123", "--json")
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	if strings.Contains(out, "token") && strings.Contains(out, "secret") {
+		t.Fatalf("json leaked a token: %s", out)
+	}
+	var got map[string]any
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got["kind"] != "plan" || got["action"] != "created" || got["source"] != "tracker" {
+		t.Fatalf("%v", got)
+	}
+	if got["tracker"] != "jira" || got["issue"] != "TEAM-123" {
+		t.Fatalf("%v", got)
+	}
+
+	again, err := execute(t, "plan", "TEAM-123")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(again, "found") {
+		t.Fatalf("%s", again)
+	}
+}
+
+func TestPlanUserSourceFromFile(t *testing.T) {
+	t.Setenv("ATLAS_HOME", t.TempDir())
+	dir := t.TempDir()
+	wd, _ := os.Getwd()
+	defer os.Chdir(wd)
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	hist := filepath.Join(dir, "hist")
+	if err := os.Mkdir(hist, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfg := &config.Config{
+		History: config.History{Path: hist},
+		Skills:  config.Skills{Scope: config.ScopeGlobal},
+	}
+	if err := config.Write(config.FileName, cfg); err != nil {
+		t.Fatal(err)
+	}
+	req := filepath.Join(dir, "req.md")
+	if err := os.WriteFile(req, []byte("user md\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out, err := execute(t, "plan", "card-Ab3xYz", "--from", req, "--json")
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	if !strings.Contains(out, `"source": "user"`) {
+		t.Fatalf("%s", out)
 	}
 }
 

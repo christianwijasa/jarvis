@@ -43,8 +43,8 @@ func TestLoadExample(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Jira.Site == "" {
-		t.Fatal("expected jira.site in example config")
+	if cfg.Tracker.Site == "" || cfg.Tracker.Kind != "jira" {
+		t.Fatalf("expected tracker in example config, got %+v", cfg.Tracker)
 	}
 	if cfg.History.Path == "" {
 		t.Fatal("expected history.path in example config")
@@ -78,5 +78,39 @@ func TestHomeDirEnvAndWrite(t *testing.T) {
 	}
 	if loaded.Skills.Scope != ScopeLocal || len(loaded.Skills.Installed) != 1 {
 		t.Fatalf("%+v", loaded.Skills)
+	}
+}
+
+func TestLoadDeprecatedJiraAlias(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, FileName)
+	body := []byte("jira:\n  site: https://old.example\n  project: OLD\n")
+	if err := os.WriteFile(path, body, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Tracker.Kind != "jira" || cfg.Tracker.Site != "https://old.example" || cfg.Tracker.Project != "OLD" {
+		t.Fatalf("%+v", cfg.Tracker)
+	}
+	if cfg.Jira.Site != "" {
+		t.Fatal("jira alias should not stay after load")
+	}
+}
+
+func TestAbsPath(t *testing.T) {
+	base := t.TempDir()
+	got, err := AbsPath(base, "hist")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(base, "hist")
+	if got != want {
+		t.Fatalf("got %q want %q", got, want)
+	}
+	if _, err := AbsPath(base, ""); err == nil {
+		t.Fatal("expected empty path error")
 	}
 }

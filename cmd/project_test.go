@@ -71,6 +71,9 @@ func TestProjectCreateAddRemoveUseCurrentJSON(t *testing.T) {
 	if _, ok := sj["graph_json"].(string); !ok {
 		t.Fatal("show json missing graph_json")
 	}
+	if sj["tracker_token_set"] != false {
+		t.Fatalf("token set %v", sj["tracker_token_set"])
+	}
 
 	cfg := &config.Config{Skills: config.Skills{Scope: config.ScopeGlobal}}
 	if err := config.Write(config.FileName, cfg); err != nil {
@@ -98,6 +101,53 @@ func TestProjectCreateAddRemoveUseCurrentJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	_ = home
+}
+
+func TestProjectCreateUpdateTracker(t *testing.T) {
+	t.Setenv("ATLAS_HOME", t.TempDir())
+	out, err := execute(t, "project", "create", "shop",
+		"--tracker-kind", "jira",
+		"--tracker-site", "https://example.atlassian.net",
+		"--tracker-mcp", "plugin-atlassian-atlassian",
+		"--tracker-token", "super-secret")
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	p, err := project.Load("shop")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Tracker.Site != "https://example.atlassian.net" || p.Tracker.MCP != "plugin-atlassian-atlassian" {
+		t.Fatalf("%+v", p.Tracker)
+	}
+	tok, err := project.ReadToken("shop")
+	if err != nil || tok != "super-secret" {
+		t.Fatalf("token %q %v", tok, err)
+	}
+	show, err := execute(t, "project", "show", "shop", "--json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(show, "super-secret") {
+		t.Fatal("token leaked in show json")
+	}
+	if !strings.Contains(show, `"tracker_token_set": true`) {
+		t.Fatalf("%s", show)
+	}
+
+	if _, err := execute(t, "project", "update", "shop", "--tracker-site", "https://other.example"); err != nil {
+		t.Fatal(err)
+	}
+	p, _ = project.Load("shop")
+	if p.Tracker.Site != "https://other.example" {
+		t.Fatalf("site %s", p.Tracker.Site)
+	}
+	if _, err := execute(t, "project", "update", "shop", "--unset-tracker-token"); err != nil {
+		t.Fatal(err)
+	}
+	if project.TokenSet("shop") {
+		t.Fatal("token should be unset")
+	}
 }
 
 func TestProjectCreateBadName(t *testing.T) {

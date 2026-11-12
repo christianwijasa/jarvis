@@ -134,3 +134,41 @@ func search(s, sub string) bool {
 	}
 	return false
 }
+
+func TestTokenSecrets(t *testing.T) {
+	withHome(t)
+	p := &Project{Name: "shop"}
+	if err := Save(p); err != nil {
+		t.Fatal(err)
+	}
+	if TokenSet("shop") {
+		t.Fatal("no token yet")
+	}
+	if err := WriteToken("shop", "secret-token"); err != nil {
+		t.Fatal(err)
+	}
+	path, err := SecretsPath("shop")
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Mode().Perm() != 0o600 {
+		t.Fatalf("perm %o", st.Mode().Perm())
+	}
+	tok, err := ReadToken("shop")
+	if err != nil || tok != "secret-token" {
+		t.Fatalf("token %q err %v", tok, err)
+	}
+	if !TokenSet("shop") {
+		t.Fatal("expected token set")
+	}
+	if err := DeleteToken("shop"); err != nil {
+		t.Fatal(err)
+	}
+	if TokenSet("shop") {
+		t.Fatal("token should be gone")
+	}
+}

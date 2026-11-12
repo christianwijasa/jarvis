@@ -122,7 +122,7 @@ installed. Non-TTY skips this unless the flag is given.`,
 			if cfg.Project != "" {
 				fmt.Fprintf(out, "Active project: %s\n", cfg.Project)
 			}
-			fmt.Fprintln(out, "Edit jira.site, history.path, and repos for this team.")
+			fmt.Fprintln(out, "Edit tracker, history.path, and repos for this team.")
 			if agentsMD {
 				action, err := upsertAgentsMD(agentsMDFile)
 				if err != nil {

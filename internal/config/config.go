@@ -23,9 +23,10 @@ const (
 var ErrNotFound = errors.New("atlas.yaml not found")
 
 // Config is the project-specific file Atlas reads. The CLI itself stays
-// tool-agnostic; Jira site, history path, and repo map belong here.
+// tool-agnostic; tracker site, history path, and repo map belong here.
 type Config struct {
-	Jira    Jira              `yaml:"jira"`
+	Tracker Tracker           `yaml:"tracker,omitempty"`
+	Jira    Jira              `yaml:"jira,omitempty"`
 	History History           `yaml:"history"`
 	Repos   map[string]string `yaml:"repos"`
 	Tiers   Tiers             `yaml:"tiers"`
@@ -34,9 +35,29 @@ type Config struct {
 	Project string            `yaml:"project,omitempty"`
 }
 
+// Tracker is optional policy for a work-item system (Jira, Trello, …).
+// Atlas never stores a token here and never calls the tracker API.
+type Tracker struct {
+	Kind    string `yaml:"kind,omitempty" json:"kind,omitempty"`
+	Site    string `yaml:"site,omitempty" json:"site,omitempty"`
+	Project string `yaml:"project,omitempty" json:"project,omitempty"`
+	MCP     string `yaml:"mcp,omitempty" json:"mcp,omitempty"`
+}
+
+// Jira is a deprecated atlas.yaml alias for Tracker (kind jira).
 type Jira struct {
-	Site    string `yaml:"site"`
-	Project string `yaml:"project"`
+	Site    string `yaml:"site,omitempty"`
+	Project string `yaml:"project,omitempty"`
+}
+
+// Set reports whether URL or MCP id is present (token is stored separately).
+func (t Tracker) Set() bool {
+	return strings.TrimSpace(t.Site) != "" || strings.TrimSpace(t.MCP) != ""
+}
+
+// Configured is true when a plan should use a tracker (URL, MCP, or token).
+func Configured(t Tracker, tokenSet bool) bool {
+	return t.Set() || tokenSet
 }
 
 type History struct {
@@ -106,7 +127,22 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("parse %s: %w", path, err)
 	}
 	cfg.Skills.Normalize()
+	cfg.mergeDeprecatedJira()
 	return &cfg, nil
+}
+
+func (c *Config) mergeDeprecatedJira() {
+	if c == nil {
+		return
+	}
+	if !c.Tracker.Set() && c.Tracker.Kind == "" && c.Tracker.Project == "" {
+		if c.Jira.Site != "" || c.Jira.Project != "" {
+			c.Tracker.Kind = "jira"
+			c.Tracker.Site = c.Jira.Site
+			c.Tracker.Project = c.Jira.Project
+		}
+	}
+	c.Jira = Jira{}
 }
 
 // Write marshals cfg to path.
@@ -115,6 +151,7 @@ func Write(path string, cfg *Config) error {
 		return fmt.Errorf("nil config")
 	}
 	cfg.Skills.Normalize()
+	cfg.mergeDeprecatedJira()
 	var b strings.Builder
 	b.WriteString("# Project settings for Atlas. TRDs belong in history.path, not here.\n")
 	enc := yaml.NewEncoder(&b)
@@ -222,6 +259,22 @@ func LocalSkillsDir(cfg *Config, projectRoot string) string {
 		return d
 	}
 	return filepath.Join(projectRoot, d)
+}
+
+// AbsPath expands ~ and joins a relative path against baseDir.
+func AbsPath(baseDir, p string) (string, error) {
+	p = strings.TrimSpace(p)
+	if p == "" {
+		return "", fmt.Errorf("empty path")
+	}
+	p = expandHome(p)
+	if filepath.IsAbs(p) {
+		return filepath.Clean(p), nil
+	}
+	if strings.TrimSpace(baseDir) == "" {
+		return filepath.Abs(p)
+	}
+	return filepath.Abs(filepath.Join(baseDir, p))
 }
 
 func expandHome(p string) string {

@@ -117,6 +117,16 @@ func TestVersionJSONSchema(t *testing.T) {
 }
 
 func TestSkillsJSONSchema(t *testing.T) {
+	t.Setenv("ATLAS_HOME", t.TempDir())
+	dir := t.TempDir()
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chdir(wd)
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
 	out, err := execute(t, "skills", "--json")
 	if err != nil {
 		t.Fatal(err)

@@ -2,20 +2,22 @@
 name: trd-pr-planning
 description: >-
   Create or find TRD plan documents in the history repo from atlas.yaml by
-  Jira key before opening PRs. Every new plan must run grill-with-docs first
-  (interview rounds, wait for user) before any docs/plans file. Use when the
-  user mentions a Jira key, creates a PR, analyzes a task, or plans
-  implementation or architecture work.
+  work-item key before opening PRs. Every new plan must run grill-with-docs
+  first (interview rounds, wait for user) before filling docs/plans files.
+  Use when the user mentions a ticket key, creates a PR, analyzes a task,
+  or plans implementation or architecture work.
 ---
 
 # TRD plan before PR
 
 Plan documents live in the **history repo** (`atlas.yaml` `history.path`),
 under `docs/plans/`. PRs for product code open in the target repo from
-`atlas.yaml` `repos`. Folder name = **exact Jira issue key**.
+`atlas.yaml` `repos`. Folder name = **exact work-item key** (Jira, Trello, or
+any path-safe id).
 
-This CLI repo is not a TRD store. `atlas plan <JIRA-KEY>` will later
-scaffold from `templates/` into that history path.
+This CLI repo is not a TRD store. `atlas plan <KEY>` scaffolds from
+`templates/` into that history path. Do not fill those files until grilling
+is done. Never read `$ATLAS_HOME/projects/<name>/secrets`.
 
 TRD enhancement: [grill-with-docs](../grill-with-docs/SKILL.md) — based on
 [grill-with-docs](https://www.aihero.dev/grill-with-docs).
@@ -31,7 +33,7 @@ Confirm target repo(s) via `atlas.yaml` `repos` (short name → local path).
 
 ## Find existing plan
 
-1. Given Jira key `TEAM-123`, open `docs/plans/TEAM-123/` in the history repo.
+1. Given key `TEAM-123`, open `docs/plans/TEAM-123/` in the history repo.
 2. Read YAML **frontmatter** on `TRD-Architecture.md` or primary `TRD-Implementation.md` (`tier`, `test_source`, `repos`).
 3. Load that primary TRD body; pull `TRD-Testing.md`, per-repo impl, or `test-data-setup.md` only when tier or task requires them.
 4. If the folder is missing, search `docs/plans/` for the key.
@@ -39,25 +41,29 @@ Confirm target repo(s) via `atlas.yaml` `repos` (short name → local path).
 
 ## Templates
 
-Start from this CLI’s `templates/trd.md`, or from templates the history
-repo keeps (architecture, backend/frontend implementation, testing). Copy
-structure into the output path; do not invent a second template tree here.
+Start from this CLI’s `templates/TRD-*.md`, or from templates the history
+repo keeps (architecture, implementation, testing). Copy structure into the
+output path; do not invent a second template tree here.
+
+`atlas plan` writes empty skeletons. If JSON `source` is `tracker`, fetch the
+work item with the host MCP named in `tracker_mcp`. If `source` is `user`,
+use the user’s markdown or `REQUIREMENT.md`. Do not load Atlas secrets.
 
 ## Output path
 
 **Single-repo:**
 
 ```
-docs/plans/<JIRA-KEY>/TRD-Implementation.md
-docs/plans/<JIRA-KEY>/TRD-Architecture.md
-docs/plans/<JIRA-KEY>/TRD-Testing.md
+docs/plans/<KEY>/TRD-Implementation.md
+docs/plans/<KEY>/TRD-Architecture.md
+docs/plans/<KEY>/TRD-Testing.md
 ```
 
 **Multi-repo (same ticket):**
 
 ```
-docs/plans/<JIRA-KEY>/TRD-Architecture.md
-docs/plans/<JIRA-KEY>/<repo-name>/TRD-Implementation.md
+docs/plans/<KEY>/TRD-Architecture.md
+docs/plans/<KEY>/<repo-name>/TRD-Implementation.md
 ```
 
 `<repo-name>` is a key from `atlas.yaml` `repos`.
@@ -66,9 +72,10 @@ docs/plans/<JIRA-KEY>/<repo-name>/TRD-Implementation.md
 
 ```yaml
 ---
-jira: TEAM-123
+issue: TEAM-123
+tracker: jira
 tier: A | B | C
-test_source: atlas:TRD-Testing | jira:TEAM-123 | user-prompt | waived
+test_source: atlas:TRD-Testing | tracker:TEAM-123 | user-prompt | waived
 repos: [api]
 type: implementation
 status: draft
@@ -82,10 +89,11 @@ Story tiers: `atlas.yaml` `tiers` (default when unsure: `tiers.default`).
 0. **Source baseline** — record local revision. Planning does not fetch,
    checkout, pull, rebase or extract implicitly. Graph navigation is
    advisory ([graph-first-analysis](../../rules/graph-first-analysis.md)).
-1. Resolve Jira key; confirm target repo(s) via `atlas.yaml` `repos`.
-2. Fetch the Jira issue from `atlas.yaml` `jira.site` (when that
-   integration exists). This skeleton does not call the Jira API yet.
-3. Check `docs/plans/<JIRA-KEY>/` — update existing doc if present, do not duplicate.
+1. Resolve the work-item key; confirm target repo(s) via `atlas.yaml` `repos`.
+2. If `atlas plan --json` reports `source: tracker`, fetch the issue with the
+   host MCP (`tracker_mcp`). If `source: user`, use the user’s requirement.
+   Atlas does not call the tracker API.
+3. Check `docs/plans/<KEY>/` — update existing doc if present, do not duplicate.
 4. Confirm doc type: architecture, backend implementation, frontend implementation, or testing plan.
 5. **Classify story tier** with the user. Default is `atlas.yaml` `tiers.default`. Record `tier` and `test_source`. **Tier A:** write `TRD-Testing.md` with [test-case-design](../test-case-design/SKILL.md). Never leave it empty. **Tier B:** skip `TRD-Testing.md` unless the user asks; Jira remains a valid test source. **Tier C:** minimal plan; user may waive full grill.
 6. Classify work: **New plan** / **Update** / **Major rewrite** (treat like new for grilling).
@@ -93,7 +101,7 @@ Story tiers: `atlas.yaml` `tiers` (default when unsure: `tiers.default`).
    - Load the team glossary and ADR tree (paths the history repo uses; often `docs/CONTEXT.md` and `docs/adr/`).
    - **Hard stop:** post grilling **round 1**, then wait. Do not open TRD templates or write under `docs/plans/` until grilling is done and the user confirms shared understanding.
 8. Read the matching template; copy structure into the output path.
-9. Fill document information from the history repo’s team file if it has one (squad, author, reviewers). **Related Story (Jira)** must match the folder key. Link issues using `jira.site` from `atlas.yaml`.
+9. Fill document information from the history repo’s team file if it has one (squad, author, reviewers). **Related Story** must match the folder key. Link issues using `tracker.site` from the resolved project/`atlas.yaml`.
 10. Complete required sections using grilled decisions. Link the glossary; link `docs/adr/` for persistent decisions. Skip sections that add no value. Do not duplicate Jira acceptance criteria into a sync file.
 11. If implementation follows an architecture doc, link it. **TRD-Testing (Tier A):** write it with [test-case-design](../test-case-design/SKILL.md).
 12. Create the PR in the **target product repo**; add the plan doc link to the PR body. When the round is final, add the team’s review label if they use one (do not invent a second process).

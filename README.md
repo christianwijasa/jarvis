@@ -156,7 +156,9 @@ Files:
 ```bash
 atlas project create shop --description "Example shop" \
   --repo cart-service=https://github.com/example/cart-service.git \
-  --repo payment-service=https://github.com/example/payment-service.git@~/src/payment-service
+  --repo payment-service=https://github.com/example/payment-service.git@~/src/payment-service \
+  --tracker-kind jira --tracker-site https://example.atlassian.net
+atlas project update shop --tracker-mcp plugin-atlassian-atlassian
 atlas project use shop
 atlas project clone shop --dir ~/src --depth 1
 atlas project graph shop
@@ -188,7 +190,7 @@ so it is cheap to rename, split, or drop.
 | `atlas help --agent` / `atlas agent-help` | Compact markdown guide for AI agents. |
 | `atlas version` | CLI version, skill-pack version, config path. `--json`. |
 | `atlas update` | Latest GitHub Release tag (not `main`). `--check`, `--json`. |
-| `atlas plan <JIRA-KEY>` | Would scaffold a TRD using `trd-pr-planning` into `history.path`. No model or Jira API. |
+| `atlas plan <KEY>` | Find or scaffold a TRD into `history.path`. Tracker-agnostic key. `--json`, `--from`, `--repo`, `--tier`. No model or tracker API. |
 | `atlas skills` | Installed vs available, with global/local paths. `--json`. |
 | `atlas skills show <name>` | Prints an installed or bundled skill (how agents load a skill). `--json`. |
 | `atlas skills install <name...>` | Fetch-at-pin or copy bundled text into `$ATLAS_HOME`. |
@@ -202,7 +204,8 @@ so it is cheap to rename, split, or drop.
 
 Copy `atlas.yaml.example` or run `atlas init`, then edit:
 
-- `jira.site` / `jira.project` — where issues come from
+- `tracker.kind` / `tracker.site` / `tracker.project` / `tracker.mcp` — optional work-item tracker policy (no token in this file)
+- Named project tracker (and token in `$ATLAS_HOME/projects/<name>/secrets`) — `atlas project create` / `update`
 - `history.path` / `history.github` — checkout (and GitHub slug) of the team history repo
 - `repos` — short names for local checkouts
 - `tiers` — default story tier and placeholder rules

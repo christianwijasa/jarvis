@@ -30,6 +30,7 @@ Read commands accept --json (schema_version atlas.cli/v1).`,
 	}
 	cmd.AddCommand(
 		newProjectCreateCmd(),
+		newProjectUpdateCmd(),
 		newProjectAddRepoCmd(),
 		newProjectRemoveRepoCmd(),
 		newProjectListCmd(),
@@ -48,18 +49,23 @@ Read commands accept --json (schema_version atlas.cli/v1).`,
 func newProjectCreateCmd() *cobra.Command {
 	var desc string
 	var repos []string
+	var tf trackerFlags
 	cmd := &cobra.Command{
 		Use:   "create <name>",
 		Short: "Create a project yaml under $ATLAS_HOME/projects/<name>/",
 		Long: `Create a named project. Names are lowercase kebab-case.
 
-On a TTY, Atlas may ask for a description and repos. If stdin is not a TTY,
+On a TTY, Atlas may ask for a description, repos, and optional tracker
+(URL, token, MCP id). Enter skips tracker fields. If stdin is not a TTY,
 pass flags; the name argument is enough. --repo may be repeated:
   name=url
-  name=url@/abs/or/~/path`,
+  name=url@/abs/or/~/path
+
+Tracker token is stored in $ATLAS_HOME/projects/<name>/secrets (mode 0600),
+never in project.yaml.`,
 		Example: `  atlas project create shop --description "Checkout and payments" \
     --repo cart-service=https://github.com/example/cart-service.git \
-    --repo payment-service=https://github.com/example/payment-service.git@~/src/payment-service`,
+    --tracker-kind jira --tracker-site https://example.atlassian.net`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
@@ -70,6 +76,8 @@ pass flags; the name argument is enough. --repo may be repeated:
 				return fmt.Errorf("project %q already exists", name)
 			}
 			p := &project.Project{SchemaVersion: project.SchemaVersion, Name: name, Description: desc}
+			applyTrackerFlags(cmd, p, tf, true)
+			token := strings.TrimSpace(tf.token)
 			for _, spec := range repos {
 				r, err := parseRepoSpec(spec)
 				if err != nil {
@@ -86,8 +94,26 @@ pass flags; the name argument is enough. --repo may be repeated:
 					return err
 				}
 			}
+			if interactive && !anyTrackerFlag(cmd) {
+				in := bufio.NewReader(cmd.InOrStdin())
+				tok, err := promptTracker(cmd, in, p, false)
+				if err != nil {
+					return err
+				}
+				if tok != "" {
+					token = tok
+				}
+			}
+			if p.Tracker.Kind == "" && p.Tracker.Set() {
+				p.Tracker.Kind = "jira"
+			}
 			if err := project.Save(p); err != nil {
 				return err
+			}
+			if token != "" {
+				if err := project.WriteToken(p.Name, token); err != nil {
+					return err
+				}
 			}
 			dir, _ := project.Dir(p.Name)
 			fmt.Fprintf(cmd.OutOrStdout(), "Created project %s at %s/%s\n", p.Name, dir, project.FileName)
@@ -96,7 +122,123 @@ pass flags; the name argument is enough. --repo may be repeated:
 	}
 	cmd.Flags().StringVar(&desc, "description", "", "optional description")
 	cmd.Flags().StringArrayVar(&repos, "repo", nil, "repo spec name=url[@path] (repeatable)")
+	addTrackerFlags(cmd, &tf)
 	return cmd
+}
+
+func newProjectUpdateCmd() *cobra.Command {
+	var desc string
+	var unsetTracker, unsetToken bool
+	var tf trackerFlags
+	cmd := &cobra.Command{
+		Use:   "update <name>",
+		Short: "Change description or tracker settings on an existing project",
+		Long: `Update fields that you pass. Omitted flags keep their current values.
+
+--unset-tracker clears kind/site/mcp/project in project.yaml.
+--unset-tracker-token deletes the secrets file.
+On a TTY with no flags, Atlas asks optional tracker questions (enter keeps current).`,
+		Example: `  atlas project update shop --tracker-site https://example.atlassian.net --tracker-mcp plugin-atlassian-atlassian
+  atlas project update shop --unset-tracker-token`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			p, err := project.Load(args[0])
+			if err != nil {
+				return err
+			}
+			if unsetTracker && anyTrackerFlag(cmd) {
+				return fmt.Errorf("do not combine --unset-tracker with --tracker-* flags")
+			}
+			if unsetToken && cmd.Flags().Changed("tracker-token") {
+				return fmt.Errorf("do not combine --unset-tracker-token with --tracker-token")
+			}
+			flagsUsed := cmd.Flags().Changed("description") || anyTrackerFlag(cmd) || unsetTracker || unsetToken
+			if cmd.Flags().Changed("description") {
+				p.Description = desc
+			}
+			if unsetTracker {
+				p.Tracker = config.Tracker{}
+			} else {
+				applyTrackerFlags(cmd, p, tf, false)
+			}
+			token := ""
+			writeTok := false
+			if cmd.Flags().Changed("tracker-token") {
+				token = strings.TrimSpace(tf.token)
+				writeTok = true
+			}
+			interactive := stdinIsTerminal(cmd.InOrStdin())
+			if interactive && !flagsUsed {
+				in := bufio.NewReader(cmd.InOrStdin())
+				tok, err := promptTracker(cmd, in, p, true)
+				if err != nil {
+					return err
+				}
+				if tok != "" {
+					token = tok
+					writeTok = true
+				}
+			}
+			if p.Tracker.Kind == "" && p.Tracker.Set() {
+				p.Tracker.Kind = "jira"
+			}
+			if err := project.Save(p); err != nil {
+				return err
+			}
+			if unsetToken {
+				if err := project.DeleteToken(p.Name); err != nil {
+					return err
+				}
+			} else if writeTok {
+				if err := project.WriteToken(p.Name, token); err != nil {
+					return err
+				}
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "Updated project %s\n", p.Name)
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&desc, "description", "", "replace description")
+	cmd.Flags().BoolVar(&unsetTracker, "unset-tracker", false, "clear tracker kind/site/mcp/project")
+	cmd.Flags().BoolVar(&unsetToken, "unset-tracker-token", false, "delete stored tracker token")
+	addTrackerFlags(cmd, &tf)
+	return cmd
+}
+
+type trackerFlags struct {
+	kind, site, project, mcp, token string
+}
+
+func addTrackerFlags(cmd *cobra.Command, f *trackerFlags) {
+	cmd.Flags().StringVar(&f.kind, "tracker-kind", "", "tracker kind (jira, trello, github, linear, other)")
+	cmd.Flags().StringVar(&f.site, "tracker-site", "", "tracker site URL")
+	cmd.Flags().StringVar(&f.project, "tracker-project", "", "tracker project or board id")
+	cmd.Flags().StringVar(&f.mcp, "tracker-mcp", "", "host MCP id")
+	cmd.Flags().StringVar(&f.token, "tracker-token", "", "tracker API token (stored in secrets, never printed)")
+}
+
+func anyTrackerFlag(cmd *cobra.Command) bool {
+	for _, n := range []string{"tracker-kind", "tracker-site", "tracker-project", "tracker-mcp", "tracker-token"} {
+		if cmd.Flags().Changed(n) {
+			return true
+		}
+	}
+	return false
+}
+
+func applyTrackerFlags(cmd *cobra.Command, p *project.Project, f trackerFlags, create bool) {
+	set := func(name, val string, dst *string) {
+		if create && !cmd.Flags().Changed(name) {
+			return
+		}
+		if create || cmd.Flags().Changed(name) {
+			*dst = strings.TrimSpace(val)
+		}
+	}
+	set("tracker-kind", f.kind, &p.Tracker.Kind)
+	set("tracker-site", f.site, &p.Tracker.Site)
+	set("tracker-project", f.project, &p.Tracker.Project)
+	set("tracker-mcp", f.mcp, &p.Tracker.MCP)
 }
 
 func promptProject(cmd *cobra.Command, in *bufio.Reader, p *project.Project) error {
@@ -126,6 +268,47 @@ func promptProject(cmd *cobra.Command, in *bufio.Reader, p *project.Project) err
 			return err
 		}
 	}
+}
+
+func promptTracker(cmd *cobra.Command, in *bufio.Reader, p *project.Project, keepCurrent bool) (string, error) {
+	out := cmd.OutOrStdout()
+	read := func(label, current string) (string, error) {
+		if keepCurrent && current != "" {
+			fmt.Fprintf(out, "%s [%s]: ", label, current)
+		} else {
+			fmt.Fprintf(out, "%s: ", label)
+		}
+		line, err := in.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return "", err
+		}
+		line = strings.TrimSpace(line)
+		if line == "" && keepCurrent {
+			return current, nil
+		}
+		return line, nil
+	}
+	site, err := read("Tracker URL (optional)", p.Tracker.Site)
+	if err != nil {
+		return "", err
+	}
+	p.Tracker.Site = site
+	kind, err := read("Tracker kind (optional)", p.Tracker.Kind)
+	if err != nil {
+		return "", err
+	}
+	p.Tracker.Kind = kind
+	mcp, err := read("MCP id (optional)", p.Tracker.MCP)
+	if err != nil {
+		return "", err
+	}
+	p.Tracker.MCP = mcp
+	fmt.Fprint(out, "Tracker token (optional, not echoed in later commands): ")
+	line, err := in.ReadString('\n')
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+	return strings.TrimSpace(line), nil
 }
 
 func parseRepoSpec(spec string) (project.Repo, error) {
@@ -263,19 +446,22 @@ func newProjectShowCmd() *cobra.Command {
 			}
 			gdir, _ := p.GraphDir()
 			gjson, _ := p.GraphJSON()
+			tokenSet := project.TokenSet(p.Name)
 			if asJSON {
 				return writeJSON(cmd.OutOrStdout(), map[string]any{
-					"schema_version": SchemaVersion,
-					"kind":           "project",
-					"project":        p,
-					"graph_dir":      gdir,
-					"graph_json":     gjson,
+					"schema_version":    SchemaVersion,
+					"kind":              "project",
+					"project":           p,
+					"graph_dir":         gdir,
+					"graph_json":        gjson,
+					"tracker_token_set": tokenSet,
 				})
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "project %s\n", p.Name)
 			if p.Description != "" {
 				fmt.Fprintf(cmd.OutOrStdout(), "  %s\n", p.Description)
 			}
+			fmt.Fprintf(cmd.OutOrStdout(), "tracker kind=%s site=%s mcp=%s token_set=%v\n", p.Tracker.Kind, p.Tracker.Site, p.Tracker.MCP, tokenSet)
 			fmt.Fprintf(cmd.OutOrStdout(), "graph: %s\n", gjson)
 			for _, r := range p.Repos {
 				fmt.Fprintf(cmd.OutOrStdout(), "  %-20s url=%s path=%s branch=%s\n", r.Name, r.URL, r.Path, r.DefaultBranch)

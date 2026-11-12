@@ -9,9 +9,9 @@ A human TTY may see a zsh-style update offer (`Would you like to update? [Y/n]`)
 ## What Atlas is
 
 Atlas is a small, tool-agnostic CLI for software-team planning.
-It is not an editor plugin. It does not call a model or the Jira API.
+It is not an editor plugin. It does not call a model or a tracker API.
 
-- Project settings: `atlas.yaml` (Jira site, history repo, repo map, gates, skill choice).
+- Project settings: `atlas.yaml` (tracker, history repo, repo map, gates, skill choice).
 - TRDs (design docs): a **separate history repo** named in `atlas.yaml` (`history.path`), not this CLI repo.
 - Bundled skill text (original/adapted) ships in the binary.
 - Vendored skills (archify) are fetched at a **pinned commit** from `upstream.yaml`. Never pull `HEAD`/`main`.
@@ -24,7 +24,7 @@ It is not an editor plugin. It does not call a model or the Jira API.
 3. `atlas doctor` — fail if not ok
 4. `atlas skills` — see what is installed
 5. `atlas skills show <name>` — load a skill body before following it
-6. `atlas plan <JIRA-KEY>` — scaffold a TRD into `history.path` (stub today)
+6. `atlas plan <KEY>` — find or scaffold a TRD into `history.path` (`source: tracker` or `source: user`)
 7. `atlas project current` / `show --json` / `graph` — combined graph across sibling repos
 
 ## Where skills live
@@ -55,11 +55,11 @@ Rules: shipped under `rules/` in the Atlas CLI repo, not installed per project.
 | `atlas skills install <name...>` | Install catalog entries at the pin | Needs `atlas.yaml`; `--copy` |
 | `atlas skills remove <name>` | Uninstall | Needs `atlas.yaml` |
 | `atlas skills upstream` | Read-only pin vs latest | `--json`; never applies updates |
-| `atlas plan <JIRA-KEY>` | Scaffold TRD via `trd-pr-planning` | Stub; no model/Jira |
+| `atlas plan <KEY>` | Find or scaffold TRD via `trd-pr-planning` | `--json`; `--from`; no model/tracker API. `source: tracker` uses host MCP; `source: user` uses markdown. Never read project secrets. |
 | `atlas update` | Latest **tag**, not main | needs `gh`; `--check` / `--json`; never follows `main` |
 | `atlas project list` / `show` / `current` / `graph-path` / `status` | Named repo groups and graph location | `--json` on these reads |
 | `atlas project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; empty extract falls back to in-repo `graphify-out` or skips |
-| `atlas project create` / `add-repo` / `clone` / `use` / `delete` | Mutate project yaml | delete needs `--yes` off TTY; create name is an arg |
+| `atlas project create` / `update` / `add-repo` / `clone` / `use` / `delete` | Mutate project yaml | create/update take optional `--tracker-*`; token in secrets not yaml; delete needs `--yes` off TTY |
 
 ## How to load a skill
 
@@ -130,6 +130,7 @@ Every JSON document has `"schema_version": "atlas.cli/v1"` and a `"kind"` string
 | `project_status` | `atlas project status --json <name>` |
 | `project_graph_path` | `atlas project graph-path --json <name>` |
 | `update` | `atlas update --json` |
+| `plan` | `atlas plan --json <KEY>` |
 
 Unknown `schema_version` means the agent should not guess the rest of the shape.
 
