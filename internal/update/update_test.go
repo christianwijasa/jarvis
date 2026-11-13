@@ -162,6 +162,45 @@ func TestApplyChecksumMismatch(t *testing.T) {
 	}
 }
 
+func TestReplaceBinaryUnwritableDest(t *testing.T) {
+	dir := t.TempDir()
+	dest := filepath.Join(dir, "jarvis")
+	if err := os.WriteFile(dest, []byte("old"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(dir, 0o555); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(dir, 0o755) })
+	err := replaceBinary(dest, []byte("new"))
+	if err == nil {
+		if os.Geteuid() == 0 {
+			t.Skip("root can write into mode 0555 directories")
+		}
+		t.Fatal("expected replace to fail")
+	}
+	msg := err.Error()
+	for _, need := range []string{"cannot replace", dest, "sudo jarvis update"} {
+		if !strings.Contains(msg, need) {
+			t.Fatalf("missing %q in %q", need, msg)
+		}
+	}
+}
+
+func TestPermissionHintSudoMessage(t *testing.T) {
+	dest := "/usr/local/bin/jarvis"
+	err := permissionHint(dest, &os.PathError{Op: "open", Path: dest, Err: errEACCES})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	msg := err.Error()
+	for _, need := range []string{"cannot replace", dest, "sudo jarvis update"} {
+		if !strings.Contains(msg, need) {
+			t.Fatalf("missing %q in %q", need, msg)
+		}
+	}
+}
+
 func TestApplyNoReleases(t *testing.T) {
 	c := Client{
 		LookPath: func(string) (string, error) { return "/bin/gh", nil },

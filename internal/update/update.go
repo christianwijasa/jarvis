@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -258,8 +259,18 @@ func permissionHint(dest string, err error) error {
 	if err == nil {
 		return nil
 	}
-	if os.IsPermission(err) {
+	if writeDenied(err) {
 		return fmt.Errorf("cannot replace %s: %w (try: sudo jarvis update)", dest, err)
 	}
 	return fmt.Errorf("cannot replace %s: %w", dest, err)
+}
+
+func writeDenied(err error) bool {
+	if err == nil {
+		return false
+	}
+	if os.IsPermission(err) || errors.Is(err, os.ErrPermission) {
+		return true
+	}
+	return errors.Is(err, errEACCES) || errors.Is(err, errEPERM)
 }

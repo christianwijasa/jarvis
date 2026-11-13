@@ -23,7 +23,8 @@ func newUpdateCmd() *cobra.Command {
 replace the running jarvis binary.
 
 Needs gh on PATH. Asset names are jarvis-<os>-<arch>. Checksums are
-verified when SHA256SUMS is attached to the release.
+verified when SHA256SUMS is attached to the release. The install path
+must be writable; if replace fails, retry with sudo jarvis update.
 
 --check prints current vs latest and downloads nothing.
 This command does not prompt. Progress goes to stderr.
