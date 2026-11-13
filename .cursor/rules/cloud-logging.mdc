@@ -1,0 +1,22 @@
+---
+description: >-
+  Optional Google Cloud Logging MCP. Use only when the named Jarvis
+  project.yaml lists cloud-logging under mcp.
+alwaysApply: false
+---
+
+# Cloud Logging MCP
+
+Load [`docs/agents/mcp/cloud-logging.md`](docs/agents/mcp/cloud-logging.md).
+
+Call `cloud-logging` only if `jarvis project show <name> --json` includes
+`cloud-logging` in `project.mcp`. If the list is missing or empty, skip GCP
+logs. Do not ask the user to connect Google Cloud.
+
+Quota project is `GOOGLE_CLOUD_PROJECT` / `logging.quota_project` on that
+project yaml. Log location is `logging.resources` (`resourceNames`). Do not
+use hub defaults for product GCP ids.
+
+Prefer MCP `queryLogs` when the server is up. Else ADC `entries:list`.
+Always set a time window. Prefer correlation-id structured filters.
+Do not trust `aggregateLogs` as a total count.

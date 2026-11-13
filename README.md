@@ -152,6 +152,7 @@ Files:
 
 - `$JARVIS_HOME/projects/<name>/project.yaml`
 - Combined graph: `$JARVIS_HOME/projects/<name>/graphify-out/` (`graph.json`, `GRAPH_REPORT.md`). Optional `graph.out_dir` in the yaml.
+- Optional `mcp:` list on that yaml (for example `cloud-logging`). Missing list means agents must not call that server. Catalog: [`docs/agents/mcp/cloud-logging.md`](docs/agents/mcp/cloud-logging.md).
 
 ```bash
 jarvis project create shop --description "Example shop" \

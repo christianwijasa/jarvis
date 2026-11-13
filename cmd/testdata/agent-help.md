@@ -86,6 +86,8 @@ When an active project has a graph, run `jarvis project graph shop --if-stale` t
 
 Per-repo `graphify-out/` is only for a repo that is **not** in an active project.
 
+Optional `mcp` on `project.yaml` (for example `cloud-logging`) is per project. If the list is missing, agents must not call that MCP. See `docs/agents/mcp/cloud-logging.md`.
+
 ## Non-interactive flags (never hit a prompt)
 
 If stdin is not a TTY and Jarvis would ask a question, it **exits 1** and names the flag. It does not hang.

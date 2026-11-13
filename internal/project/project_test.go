@@ -75,6 +75,40 @@ func TestValidateAndSaveLoad(t *testing.T) {
 	}
 }
 
+func TestMCPRoundTripAndUses(t *testing.T) {
+	withHome(t)
+	p := &Project{
+		Name: "shop",
+		MCP:  []string{"cloud-logging"},
+		Logging: Logging{
+			QuotaProject: "quota-proj",
+			Resources:    []string{"projects/logs-proj"},
+		},
+		Repos: []Repo{{Name: "cart-service"}},
+	}
+	if err := Save(p); err != nil {
+		t.Fatal(err)
+	}
+	got, err := Load("shop")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !got.UsesMCP("cloud-logging") || got.UsesMCP("other") {
+		t.Fatalf("uses %+v", got.MCP)
+	}
+	if got.Logging.QuotaProject != "quota-proj" || len(got.Logging.Resources) != 1 {
+		t.Fatalf("logging %+v", got.Logging)
+	}
+	empty := &Project{Name: "cart", Repos: []Repo{{Name: "cart-service"}}}
+	if empty.UsesMCP("cloud-logging") {
+		t.Fatal("empty mcp must not opt in")
+	}
+	dup := &Project{Name: "shop", MCP: []string{"cloud-logging", "cloud-logging"}}
+	if err := dup.Validate(); err == nil {
+		t.Fatal("expected duplicate mcp id to fail")
+	}
+}
+
 func TestExpandAndGraphPaths(t *testing.T) {
 	home := withHome(t)
 	p := &Project{Name: "shop", Repos: []Repo{{Name: "cart-service", Path: "~/src/cart"}}}

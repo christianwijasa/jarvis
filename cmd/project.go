@@ -437,6 +437,9 @@ func newProjectShowCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "show <name>",
 		Short:   "Show a project, its repos, and graph path",
+		Long: `Print project yaml fields, optional mcp list, and graph.json path.
+
+If mcp omits cloud-logging, agents must not call the Cloud Logging server.`,
 		Example: `  jarvis project show shop --json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -462,6 +465,11 @@ func newProjectShowCmd() *cobra.Command {
 				fmt.Fprintf(cmd.OutOrStdout(), "  %s\n", p.Description)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "tracker kind=%s site=%s mcp=%s token_set=%v\n", p.Tracker.Kind, p.Tracker.Site, p.Tracker.MCP, tokenSet)
+			if len(p.MCP) == 0 {
+				fmt.Fprintln(cmd.OutOrStdout(), "mcp: (none)")
+			} else {
+				fmt.Fprintf(cmd.OutOrStdout(), "mcp: %s\n", strings.Join(p.MCP, ", "))
+			}
 			fmt.Fprintf(cmd.OutOrStdout(), "graph: %s\n", gjson)
 			for _, r := range p.Repos {
 				fmt.Fprintf(cmd.OutOrStdout(), "  %-20s url=%s path=%s branch=%s\n", r.Name, r.URL, r.Path, r.DefaultBranch)

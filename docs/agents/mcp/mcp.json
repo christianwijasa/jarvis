@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "cloud-logging": {
+      "command": "npx",
+      "args": ["-y", "cloud-logging-mcp@1.1.1"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "${env:GOOGLE_CLOUD_PROJECT}"
+      }
+    }
+  }
+}

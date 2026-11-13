@@ -30,8 +30,17 @@ type Project struct {
 	Name          string         `yaml:"name" json:"name"`
 	Description   string         `yaml:"description,omitempty" json:"description,omitempty"`
 	Tracker       config.Tracker `yaml:"tracker,omitempty" json:"tracker,omitempty"`
+	MCP           []string       `yaml:"mcp,omitempty" json:"mcp,omitempty"`
+	Logging       Logging        `yaml:"logging,omitempty" json:"logging,omitempty"`
 	Repos         []Repo         `yaml:"repos" json:"repos"`
 	Graph         Graph          `yaml:"graph,omitempty" json:"graph"`
+}
+
+// Logging is per-project Cloud Logging map. Empty when the project does not
+// opt in. QuotaProject is x-goog-user-project; Resources are resourceNames.
+type Logging struct {
+	QuotaProject string   `yaml:"quota_project,omitempty" json:"quota_project,omitempty"`
+	Resources    []string `yaml:"resources,omitempty" json:"resources,omitempty"`
 }
 
 type Repo struct {
@@ -52,9 +61,28 @@ func ValidateName(name string) error {
 	return nil
 }
 
+func (p *Project) UsesMCP(id string) bool {
+	for _, s := range p.MCP {
+		if s == id {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Project) Validate() error {
 	if err := ValidateName(p.Name); err != nil {
 		return err
+	}
+	seenMCP := map[string]bool{}
+	for _, id := range p.MCP {
+		if err := ValidateName(id); err != nil {
+			return fmt.Errorf("mcp %s: %w", id, err)
+		}
+		if seenMCP[id] {
+			return fmt.Errorf("duplicate mcp id %q", id)
+		}
+		seenMCP[id] = true
 	}
 	seen := map[string]bool{}
 	for _, r := range p.Repos {
