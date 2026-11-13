@@ -14,15 +14,18 @@ name. If there is no active project, use this repo's own `graphify-out/`.
 
 Known file/symbol fixes may read current source directly.
 
-Query and status never fetch, pull, extract or refresh. Valid stale
-results are hints with provenance; current source establishes facts.
+Before a project-graph query, run `jarvis project graph <name> --if-stale`.
+That command may `git fetch` and re-extract stale member repos. `graphify
+query` itself never fetches or rebuilds. `jarvis project status` without
+`--fetch` uses local origin refs only.
+
+Valid results are hints with provenance; current source establishes facts.
 Missing, corrupt, blocked or unhelpful graphs use bounded source
 fallback without silently expanding scope. Runtime claims require
 runtime evidence.
 
-Refresh is a separate explicit action (`jarvis project graph <name>` for
-a project graph). Preserve configured paths from the project yaml and
-from `jarvis.yaml` `repos`.
+A full rebuild is `jarvis project graph <name>` (no `--if-stale`). Preserve
+configured paths from the project yaml and from `jarvis.yaml` `repos`.
 
 Planning or writing TRDs: if the team keeps a business-layer graph,
 search process/entity nodes first to map each acceptance criterion to

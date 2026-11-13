@@ -7,7 +7,9 @@ this working tree's `graphify-out/`.
 
 Treat `graphify query` results as hints, then verify in current source.
 
-Refresh or extract is a separate explicit action (`jarvis project graph`
-for a project graph). Query and status must not fetch, pull, or rebuild.
+Before query, run `jarvis project graph <name> --if-stale` (may fetch and
+extract). `graphify query` does not rebuild. `jarvis project status`
+without `--fetch` uses local origin refs only. A full rebuild is
+`jarvis project graph <name>`.
 
 See [query.md](query.md) for the graphify query interface.

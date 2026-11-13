@@ -605,8 +605,9 @@ func newProjectStatusCmd() *cobra.Command {
 		Use:   "status <name>",
 		Short: "Read-only git and graph-freshness status for each repo",
 		Long: `For each repo: path exists, is a git repo, current branch, dirty,
-ahead/behind vs upstream (no fetch unless --fetch). Also compares
-graphify-out/graph.json mtime to each repo HEAD commit (stale if HEAD is newer).`,
+ahead/behind vs upstream (no fetch unless --fetch). Graph freshness
+compares stamps.json SHAs to origin/main or origin/master (stale if they
+differ or stamps are missing). --fetch updates origin refs first.`,
 		Example: `  jarvis project status shop --json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -642,7 +643,7 @@ graphify-out/graph.json mtime to each repo HEAD commit (stale if HEAD is newer).
 }
 
 func newProjectGraphCmd() *cobra.Command {
-	var update bool
+	var update, ifStale bool
 	var repos string
 	cmd := &cobra.Command{
 		Use:   "graph <name>",
@@ -654,6 +655,9 @@ func newProjectGraphCmd() *cobra.Command {
 
 extract --out keeps graphify-out out of member checkouts. merge-graphs
 prefixes node ids with the repo name (parent.parent of each graph.json).
+Writes stamps.json with each repo HEAD SHA after a successful build.
+--if-stale fetches origin, compares stamps to origin/main or origin/master,
+and extracts only stale or missing members. Agents run this before query.
 --update re-runs extract (incremental if a previous extract exists).
 --repos a,b limits which members are extracted and merged.
 
@@ -664,6 +668,7 @@ continues. Combined output stays under $JARVIS_HOME/projects/<name>/.
 Progress (extract i/n <repo>, merge n graphs) and live graphify logs go
 to stderr. Success is one stdout line with the combined graph path.`,
 		Example: `  jarvis project graph shop
+  jarvis project graph shop --if-stale
   jarvis project graph shop --update --repos cart-service,payment-service`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -680,10 +685,11 @@ to stderr. Success is one stdout line with the combined graph path.`,
 					}
 				}
 			}
+			_ = update
 			old := project.Progress
 			project.Progress = cmd.ErrOrStderr()
 			defer func() { project.Progress = old }()
-			res, err := project.BuildGraph(p, filter, update)
+			res, err := project.BuildGraph(p, filter, ifStale)
 			if err != nil {
 				return err
 			}
@@ -692,6 +698,7 @@ to stderr. Success is one stdout line with the combined graph path.`,
 		},
 	}
 	cmd.Flags().BoolVar(&update, "update", false, "re-extract even if an extract already exists")
+	cmd.Flags().BoolVar(&ifStale, "if-stale", false, "fetch origin and extract only repos whose stamp SHA differs from origin/main or origin/master")
 	cmd.Flags().StringVar(&repos, "repos", "", "comma-separated repo names to include")
 	return cmd
 }
@@ -713,6 +720,8 @@ func newProjectGraphPathCmd() *cobra.Command {
 				return err
 			}
 			gdir, _ := p.GraphDir()
+			rows, _ := project.CheckStale(p, false)
+			fresh := project.AllFresh(rows)
 			if asJSON {
 				return writeJSON(cmd.OutOrStdout(), map[string]any{
 					"schema_version": SchemaVersion,
@@ -720,6 +729,8 @@ func newProjectGraphPathCmd() *cobra.Command {
 					"project":        p.Name,
 					"graph_dir":      gdir,
 					"graph_json":     gjson,
+					"fresh":          fresh,
+					"repos":          rows,
 				})
 			}
 			fmt.Fprintln(cmd.OutOrStdout(), gjson)

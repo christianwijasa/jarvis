@@ -51,17 +51,18 @@ the repo name so `cart-service` and `payment-service` cannot collide.
 When an active project exists:
 
 1. `jarvis project current --json` and `jarvis project show <name> --json` (includes `graph_json`).
-2. Query **that** graph before reading files across repos:
+2. Run `jarvis project graph <name> --if-stale` before every query. It fetches origin, compares `stamps.json` SHAs to `origin/main` or `origin/master`, and re-extracts only stale members.
+3. Query **that** graph before reading files across repos:
    `graphify query "how does cart-service call payment-service"` with cwd or graph path from `jarvis project graph-path <name>`.
-3. Build or refresh with `jarvis project graph <name>` (uses `graphify extract --out` then `graphify merge-graphs`; does **not** write `graphify-out/` inside member checkouts).
+4. Full rebuild: `jarvis project graph <name>` (uses `graphify extract --out` then `graphify merge-graphs`; does **not** write `graphify-out/` inside member checkouts).
 
 If there is no active project, use this repo's own `graphify-out/`.
 
 ## Team graphs
 
 If this team keeps graphs for the repos listed in `jarvis.yaml`, treat query
-results as hints, then verify in current source. Refresh or extract is a
-separate explicit action. See [references/team-graphs.md](references/team-graphs.md) and [references/query.md](references/query.md).
+results as hints, then verify in current source. `jarvis project graph --if-stale`
+is the ensure step before query (may fetch and extract). See [references/team-graphs.md](references/team-graphs.md) and [references/query.md](references/query.md).
 
 
 ## What graphify is for
@@ -72,7 +73,7 @@ Drop any folder of code, docs, papers, images, or video into graphify and get a 
 
 If the user invoked `/graphify --help` or `/graphify -h` (with no other arguments), print the contents of the `## Usage` section above verbatim and stop. Do not run any commands, do not detect files, do not default the path to `.`. Just print the Usage block and return.
 
-**Fast path — existing graph:** Before doing anything else, if `jarvis.yaml` names an active project, prefer `$JARVIS_HOME/projects/<name>/graphify-out/graph.json` (`jarvis project graph-path`). Otherwise check whether `graphify-out/graph.json` exists relative to the **current working directory**. If a graph exists AND the user's request is a natural-language question about the codebase (e.g. "How does X work?", "What calls Y?", "Trace the data flow through Z") and NOT an explicit rebuild command (`--update`, `--cluster-only`, `jarvis project graph`, or a bare path/URL that implies fresh extraction): **skip Steps 1–5 entirely and jump straight to `## For /graphify query`.** Run `graphify query "<question>"` immediately (against the project graph when one is active). Do not run detect. Do not check corpus size. Do not ask the user to narrow. The graph is already built — use it.
+**Fast path — existing graph:** Before doing anything else, if `jarvis.yaml` names an active project, run `jarvis project graph <name> --if-stale`, then query `$JARVIS_HOME/projects/<name>/graphify-out/graph.json` (`jarvis project graph-path`). Do not skip `--if-stale` just because `graph.json` exists. Otherwise check whether `graphify-out/graph.json` exists relative to the **current working directory**. If a graph exists AND the user's request is a natural-language question about the codebase (e.g. "How does X work?", "What calls Y?", "Trace the data flow through Z") and NOT an explicit rebuild command (`--update`, `--cluster-only`, `jarvis project graph`, or a bare path/URL that implies fresh extraction): **skip Steps 1–5 entirely and jump straight to `## For /graphify query`.** Run `graphify query "<question>"` immediately (against the project graph when one is active). Do not run detect. Do not check corpus size. Do not ask the user to narrow.
 
 If no path was given, use `.` (current directory). Do not ask the user for a path.
 

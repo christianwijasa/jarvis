@@ -263,6 +263,104 @@ func TestBuildGraphAllExtractsEmpty(t *testing.T) {
 	}
 }
 
+func TestBuildGraphWritesStamps(t *testing.T) {
+	_ = withHome(t)
+	checkout, _, sha := setupClone(t, "main")
+	p := &Project{Name: "shop", Repos: []Repo{{Name: "cart-service", Path: checkout}}}
+	if err := Save(p); err != nil {
+		t.Fatal(err)
+	}
+	stubGraphify(t, "")
+	Progress = io.Discard
+	loaded, _ := Load("shop")
+	if _, err := BuildGraph(loaded, nil, false); err != nil {
+		t.Fatal(err)
+	}
+	st, err := ReadStamps(loaded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := st.Repos["cart-service"]
+	if got.Commit != sha {
+		t.Fatalf("stamp %+v want %s", got, sha)
+	}
+	if got.Ref != "origin/main" {
+		t.Fatalf("ref %s", got.Ref)
+	}
+}
+
+func TestBuildGraphIfStaleSkipsWhenFresh(t *testing.T) {
+	_ = withHome(t)
+	checkout, _, _ := setupClone(t, "main")
+	p := &Project{Name: "shop", Repos: []Repo{{Name: "cart-service", Path: checkout}}}
+	if err := Save(p); err != nil {
+		t.Fatal(err)
+	}
+	calls := stubGraphify(t, "")
+	Progress = io.Discard
+	loaded, _ := Load("shop")
+	if _, err := BuildGraph(loaded, nil, false); err != nil {
+		t.Fatal(err)
+	}
+	n := len(*calls)
+	res, err := BuildGraph(loaded, nil, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(*calls) != n {
+		t.Fatalf("if-stale extracted again: %v", *calls)
+	}
+	if len(res.Extracts) != 0 {
+		t.Fatalf("extracts %v", res.Extracts)
+	}
+}
+
+func TestBuildGraphIfStaleExtractsOnlyChangedRepo(t *testing.T) {
+	_ = withHome(t)
+	cart, _, _ := setupClone(t, "main")
+	pay, _, _ := setupClone(t, "main")
+	p := &Project{Name: "shop", Repos: []Repo{
+		{Name: "cart-service", Path: cart},
+		{Name: "payment-service", Path: pay},
+	}}
+	if err := Save(p); err != nil {
+		t.Fatal(err)
+	}
+	calls := stubGraphify(t, "")
+	Progress = io.Discard
+	loaded, _ := Load("shop")
+	if _, err := BuildGraph(loaded, nil, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(cart, "README"), []byte("bye\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	gitOk(t, cart, "add", "README")
+	gitOk(t, cart, "commit", "-m", "change")
+	gitOk(t, cart, "push", "origin", "HEAD")
+
+	before := len(*calls)
+	res, err := BuildGraph(loaded, nil, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var extracts [][]string
+	for _, c := range (*calls)[before:] {
+		if len(c) > 0 && c[0] == "extract" {
+			extracts = append(extracts, c)
+		}
+	}
+	if len(extracts) != 1 {
+		t.Fatalf("want 1 extract, got %v", (*calls)[before:])
+	}
+	if extracts[0][1] != cart {
+		t.Fatalf("extracted %v want %s", extracts[0], cart)
+	}
+	if len(res.Repos) != 2 {
+		t.Fatalf("merge should keep both repos: %v", res.Repos)
+	}
+}
+
 func containsArg(args []string, want string) bool {
 	for _, a := range args {
 		if a == want {

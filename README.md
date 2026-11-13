@@ -162,6 +162,7 @@ jarvis project update shop --tracker-mcp plugin-atlassian-atlassian
 jarvis project use shop
 jarvis project clone shop --dir ~/src --depth 1
 jarvis project graph shop
+jarvis project graph shop --if-stale
 jarvis project graph-path shop --json
 jarvis project status shop --json
 ```
@@ -171,13 +172,20 @@ jarvis project status shop --json
 then `merge-graphs … --out …/graphify-out/graph.json`. That keeps
 `graphify-out/` **out of member checkouts**. `merge-graphs` prefixes node
 ids with the repo name (`parent.parent` of each extract `graph.json`).
+After a successful build it writes `stamps.json` with each repo HEAD SHA.
 Need `graphify` on PATH (`jarvis doctor` checks it). Progress
 (`extract i/n <repo>`, `merge n graphs`) and live graphify logs go to
 stderr; there is no GUI. Success is one stdout line with the combined
 graph path.
 
-When `jarvis.yaml` has `project: shop`, agents should `graphify query`
-against the **project** graph before reading files across repos.
+`--if-stale` fetches origin, compares stamps to `origin/main` or
+`origin/master`, and extracts only members whose SHA differs. Agents run
+this before every project-graph query. `jarvis project status` reports
+the same SHA freshness (`--fetch` updates origin refs first).
+
+When `jarvis.yaml` has `project: shop`, agents should run
+`jarvis project graph shop --if-stale`, then `graphify query` against the
+**project** graph before reading files across repos.
 
 ## Commands (proposal)
 

@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // GitRun runs git. Tests replace this.
@@ -105,60 +104,59 @@ func Clone(p *Project, parentDir string, depth int) ([]CloneResult, error) {
 }
 
 type RepoStatus struct {
-	Name     string `json:"name"`
-	Path     string `json:"path,omitempty"`
-	Exists   bool   `json:"exists"`
-	GitRepo  bool   `json:"git_repo"`
-	Branch   string `json:"branch,omitempty"`
-	Dirty    bool   `json:"dirty,omitempty"`
-	Ahead    int    `json:"ahead,omitempty"`
-	Behind   int    `json:"behind,omitempty"`
-	HEADTime *int64 `json:"head_unix,omitempty"`
-	Graph    string `json:"graph,omitempty"` // fresh, stale, missing
-	Detail   string `json:"detail,omitempty"`
+	Name         string `json:"name"`
+	Path         string `json:"path,omitempty"`
+	Exists       bool   `json:"exists"`
+	GitRepo      bool   `json:"git_repo"`
+	Branch       string `json:"branch,omitempty"`
+	Dirty        bool   `json:"dirty,omitempty"`
+	Ahead        int    `json:"ahead,omitempty"`
+	Behind       int    `json:"behind,omitempty"`
+	HEADTime     *int64 `json:"head_unix,omitempty"`
+	Graph        string `json:"graph,omitempty"` // fresh, stale, missing, unknown
+	GraphCommit  string `json:"graph_commit,omitempty"`
+	OriginCommit string `json:"origin_commit,omitempty"`
+	Detail       string `json:"detail,omitempty"`
 }
 
 func Status(p *Project, fetch bool) ([]RepoStatus, error) {
-	graphPath, err := p.GraphJSON()
+	fresh, err := CheckStale(p, fetch)
 	if err != nil {
 		return nil, err
 	}
-	var graphTime time.Time
-	graphExists := false
-	if st, err := os.Stat(graphPath); err == nil {
-		graphExists = true
-		graphTime = st.ModTime()
+	byName := map[string]RepoFreshness{}
+	for _, f := range fresh {
+		byName[f.Name] = f
 	}
 
 	var out []RepoStatus
 	for _, r := range p.Repos {
 		s := RepoStatus{Name: r.Name, Path: ExpandPath(r.Path)}
+		if f, ok := byName[r.Name]; ok {
+			s.Graph = f.Graph
+			s.GraphCommit = f.GraphCommit
+			s.OriginCommit = f.OriginCommit
+			if f.Detail != "" {
+				s.Detail = f.Detail
+			}
+		}
 		if s.Path == "" {
-			s.Detail = "no local path"
-			s.Graph = graphLabel(graphExists, false)
 			out = append(out, s)
 			continue
 		}
 		st, err := os.Stat(s.Path)
 		if err != nil || !st.IsDir() {
 			s.Exists = false
-			s.Detail = "path missing"
-			s.Graph = graphLabel(graphExists, false)
 			out = append(out, s)
 			continue
 		}
 		s.Exists = true
 		if _, err := os.Stat(filepath.Join(s.Path, ".git")); err != nil {
 			s.GitRepo = false
-			s.Detail = "not a git repo"
-			s.Graph = graphLabel(graphExists, false)
 			out = append(out, s)
 			continue
 		}
 		s.GitRepo = true
-		if fetch {
-			_, _ = GitRun(s.Path, "fetch", "--quiet")
-		}
 		if b, err := GitRun(s.Path, "rev-parse", "--abbrev-ref", "HEAD"); err == nil {
 			s.Branch = string(b)
 		}
@@ -175,29 +173,9 @@ func Status(p *Project, fetch bool) ([]RepoStatus, error) {
 		if b, err := GitRun(s.Path, "log", "-1", "--format=%ct"); err == nil {
 			if n, err := strconv.ParseInt(strings.TrimSpace(string(b)), 10, 64); err == nil {
 				s.HEADTime = &n
-				if !graphExists {
-					s.Graph = "missing"
-				} else if time.Unix(n, 0).After(graphTime) {
-					s.Graph = "stale"
-				} else {
-					s.Graph = "fresh"
-				}
 			}
-		}
-		if s.Graph == "" {
-			s.Graph = graphLabel(graphExists, false)
 		}
 		out = append(out, s)
 	}
 	return out, nil
-}
-
-func graphLabel(exists, stale bool) string {
-	if !exists {
-		return "missing"
-	}
-	if stale {
-		return "stale"
-	}
-	return "fresh"
 }

@@ -98,6 +98,19 @@ func projectCheck(cfg *config.Config) Item {
 		item.Problems = missing
 		item.Detail = name + "; missing paths (warn)"
 	}
+	gjson, err := p.GraphJSON()
+	if err == nil {
+		if st, e := os.Stat(gjson); e == nil && !st.IsDir() {
+			sp, _ := p.StampsPath()
+			if _, e := os.Stat(sp); e != nil {
+				item.Warn = true
+				item.Problems = append(item.Problems, "graph.json exists but stamps.json is missing; run jarvis project graph "+name)
+				if item.Detail == name {
+					item.Detail = name + "; graph stamps missing (warn)"
+				}
+			}
+		}
+	}
 	return item
 }
 

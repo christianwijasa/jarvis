@@ -49,13 +49,17 @@ type GraphBuildResult struct {
 	Repos     []string `json:"repos"`
 	Extracts  []string `json:"extract_invocations,omitempty"`
 	MergeArgs []string `json:"merge_args,omitempty"`
+	Skipped   []string `json:"skipped_fresh,omitempty"`
 }
 
 // BuildGraph extracts each selected repo with `graphify extract PATH --out DIR`
 // (v0.9.15) so graphify-out is NOT written inside member checkouts, then
 // `graphify merge-graphs` which prefixes node ids with the repo name
 // (parent.parent of each graph.json).
-func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult, error) {
+//
+// If ifStale is true, Jarvis fetches origin, compares stamps.json to
+// origin/<default-branch>, and extracts only stale or missing members.
+func BuildGraph(p *Project, repoFilter []string, ifStale bool) (GraphBuildResult, error) {
 	var res GraphBuildResult
 	res.Project = p.Name
 	graphJSON, err := p.GraphJSON()
@@ -72,9 +76,54 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 		return res, fmt.Errorf("project %s has no repos with a local path", p.Name)
 	}
 
-	var graphFiles []string
+	extractSet := map[string]bool{}
+	if ifStale {
+		rows, err := CheckStale(p, true)
+		if err != nil {
+			return res, err
+		}
+		byName := map[string]RepoFreshness{}
+		for _, row := range rows {
+			byName[row.Name] = row
+		}
+		allFresh := true
+		for _, r := range selected {
+			row := byName[r.Name]
+			if needsExtract(row.Graph) {
+				extractSet[r.Name] = true
+				allFresh = false
+				continue
+			}
+			if row.Graph == "fresh" {
+				res.Skipped = append(res.Skipped, r.Name)
+			}
+		}
+		if allFresh && graphJSONUsable(graphJSON) {
+			for _, r := range selected {
+				res.Repos = append(res.Repos, r.Name)
+			}
+			writeProgress("graph fresh; skip extract\n")
+			return res, nil
+		}
+	} else {
+		for _, r := range selected {
+			extractSet[r.Name] = true
+		}
+	}
+
+	stamps, err := ReadStamps(p)
+	if err != nil {
+		return res, err
+	}
+	if stamps.Repos == nil {
+		stamps.Repos = map[string]RepoStamp{}
+	}
+
 	n := len(selected)
 	for i, r := range selected {
+		if !extractSet[r.Name] {
+			continue
+		}
 		abs := p.AbsRepoPath(r)
 		if abs == "" {
 			return res, fmt.Errorf("repo %s has no local path; clone or set --path", r.Name)
@@ -90,13 +139,10 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 			return res, err
 		}
 		args := []string{"extract", abs, "--out", outDir, "--code-only"}
-		if update {
-			// extract is incremental when graph.json+manifest exist in --out
-			_ = update
-		}
 		writeProgress("extract %d/%d %s\n", i+1, n, r.Name)
 		extractErr := GraphifyRun(args...)
 		destGraph := filepath.Join(outDir, "graphify-out", "graph.json")
+		ok := true
 		if extractErr != nil || !graphJSONUsable(destGraph) {
 			inRepo := filepath.Join(abs, "graphify-out", "graph.json")
 			if graphJSONUsable(inRepo) {
@@ -110,20 +156,38 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 				} else {
 					writeProgress("extract %d/%d %s: empty --out extract; skipping (no in-repo graphify-out)\n", i+1, n, r.Name)
 				}
-				continue
+				ok = false
 			}
 		}
+		if !ok {
+			continue
+		}
 		res.Extracts = append(res.Extracts, strings.Join(args, " "))
-		res.Repos = append(res.Repos, r.Name)
-		graphFiles = append(graphFiles, destGraph)
+		if st, err := stampRepo(abs, r.DefaultBranch); err == nil {
+			stamps.Repos[r.Name] = st
+		}
 	}
+
+	var graphFiles []string
+	var mergeRepos []string
+	for _, r := range selected {
+		outDir, err := p.ExtractOutDir(r.Name)
+		if err != nil {
+			return res, err
+		}
+		destGraph := filepath.Join(outDir, "graphify-out", "graph.json")
+		if !graphJSONUsable(destGraph) {
+			continue
+		}
+		graphFiles = append(graphFiles, destGraph)
+		mergeRepos = append(mergeRepos, r.Name)
+	}
+	res.Repos = mergeRepos
 	if len(graphFiles) == 0 {
 		return res, fmt.Errorf("project %s: no usable graphs after extract", p.Name)
 	}
 	if len(graphFiles) == 1 {
-		// merge-graphs needs two or more inputs; prefix the single extract
-		// the same way (repo name as node-id prefix).
-		if err := prefixGraphFile(graphFiles[0], graphJSON, res.Repos[0]); err != nil {
+		if err := prefixGraphFile(graphFiles[0], graphJSON, mergeRepos[0]); err != nil {
 			return res, err
 		}
 	} else {
@@ -139,7 +203,11 @@ func BuildGraph(p *Project, repoFilter []string, update bool) (GraphBuildResult,
 		}
 		res.MergeArgs = args
 	}
-	if err := writeGraphSidecar(p, graphJSON, res.Repos); err != nil {
+	stamps.BuiltAt = time.Now().UTC().Format(time.RFC3339)
+	if err := WriteStamps(p, stamps); err != nil {
+		return res, err
+	}
+	if err := writeGraphSidecar(p, graphJSON, mergeRepos); err != nil {
 		return res, err
 	}
 	return res, nil

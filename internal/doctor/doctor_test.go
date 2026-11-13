@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/christianwijasa/jarvis/internal/config"
+	"github.com/christianwijasa/jarvis/internal/project"
 )
 
 func TestCheckWithConfig(t *testing.T) {
@@ -64,5 +65,34 @@ func TestCheckSkillLinks(t *testing.T) {
 	_ = Check(&buf, empty)
 	if !strings.Contains(buf.String(), "skills: pass") {
 		t.Fatalf("empty install should pass:\n%s", buf.String())
+	}
+}
+
+func TestCheckWarnsMissingGraphStamps(t *testing.T) {
+	dir := t.TempDir()
+	home := t.TempDir()
+	t.Setenv("JARVIS_HOME", home)
+	p := &project.Project{Name: "shop"}
+	if err := project.Save(p); err != nil {
+		t.Fatal(err)
+	}
+	gjson, err := p.GraphJSON()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(gjson), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(gjson, []byte(`{"nodes":[{"id":"x"}]}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg := &config.Config{Project: "shop", Skills: config.Skills{Scope: config.ScopeGlobal}}
+	if err := config.Write(filepath.Join(dir, config.FileName), cfg); err != nil {
+		t.Fatal(err)
+	}
+	var buf bytes.Buffer
+	_ = Check(&buf, dir)
+	if !strings.Contains(buf.String(), "stamps.json is missing") {
+		t.Fatalf("output:\n%s", buf.String())
 	}
 }

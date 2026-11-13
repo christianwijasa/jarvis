@@ -57,8 +57,8 @@ Rules: shipped under `rules/` in the Jarvis CLI repo, not installed per project.
 | `jarvis skills upstream` | Read-only pin vs latest | `--json`; never applies updates |
 | `jarvis plan <KEY>` | Find or scaffold TRD via `trd-pr-planning` | `--json`; `--from`; no model/tracker API. `source: tracker` uses host MCP; `source: user` uses markdown. Never read project secrets. |
 | `jarvis update` | Latest **tag**, not main | needs `gh`; `--check` / `--json`; never follows `main` |
-| `jarvis project list` / `show` / `current` / `graph-path` / `status` | Named repo groups and graph location | `--json` on these reads |
-| `jarvis project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; empty extract falls back to in-repo `graphify-out` or skips |
+| `jarvis project list` / `show` / `current` / `graph-path` / `status` | Named repo groups and graph location | `--json` on these reads; status SHA freshness vs origin; `--fetch` optional |
+| `jarvis project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; `--if-stale` fetches origin and extracts only stale SHAs; empty extract falls back to in-repo `graphify-out` or skips |
 | `jarvis project create` / `update` / `add-repo` / `clone` / `use` / `delete` | Mutate project yaml | create/update take optional `--tracker-*`; token in secrets not yaml; delete needs `--yes` off TTY |
 
 ## How to load a skill
@@ -82,7 +82,7 @@ jarvis project show shop --json          # includes graph_json and repos[].path
 jarvis project graph-path shop --json
 ```
 
-When an active project has a graph, **query that graph first** (for example `graphify query "..." ` with the project's graph path/cwd) before reading files across repos. Build/refresh with `jarvis project graph shop`. It prints `extract i/n <repo>` and `merge n graphs` on stderr and streams graphify logs (no GUI). Output is `$JARVIS_HOME/projects/<name>/graphify-out/` (not inside member checkouts). Jarvis uses graphify v0.9.15 `extract --out` per repo then `merge-graphs` (node ids prefixed with the repo name). An empty or failed `--out` extract copies that repo's in-repo `graphify-out/graph.json` when present, otherwise skips the repo and continues.
+When an active project has a graph, run `jarvis project graph shop --if-stale` then **query that graph first** (for example `graphify query "..." ` with the project's graph path/cwd) before reading files across repos. `--if-stale` fetches origin, compares `stamps.json` to `origin/main` or `origin/master`, and re-extracts only stale members. Full rebuild: `jarvis project graph shop`. It prints `extract i/n <repo>` and `merge n graphs` on stderr and streams graphify logs (no GUI). Output is `$JARVIS_HOME/projects/<name>/graphify-out/` (not inside member checkouts). Jarvis uses graphify v0.9.15 `extract --out` per repo then `merge-graphs` (node ids prefixed with the repo name). An empty or failed `--out` extract copies that repo's in-repo `graphify-out/graph.json` when present, otherwise skips the repo and continues.
 
 Per-repo `graphify-out/` is only for a repo that is **not** in an active project.
 
