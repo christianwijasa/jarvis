@@ -2,8 +2,8 @@
 name: domain-modeling
 description: >-
   Build and sharpen the project domain model. Use when resolving terminology
-  during grill-with-docs or TRD planning — write the glossary and docs/adr/
-  as terms and decisions crystallise.
+  during grill-with-docs, TRD planning, or PRD planning — write the glossary
+  and docs/adr/ as terms and decisions crystallise.
 ---
 
 <!--
@@ -17,6 +17,8 @@ Hub UPSTREAM.md skipped the upstream CONTEXT → GLOSSARY rename on purpose.
 Actively build and sharpen the project's domain model as you design. Challenge terms, invent edge-case scenarios, and write the glossary and decisions down the moment they crystallise.
 
 Glossary and ADRs live in the history repo (`jarvis.yaml` `history.path`), not in this CLI repo.
+
+Under the product role, write glossary terms only. Product decisions go in the PRD "Decisions" section, not in `docs/adr/`.
 
 ## File structure
 

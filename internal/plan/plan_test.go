@@ -179,3 +179,122 @@ func TestHistoryRoot(t *testing.T) {
 		t.Fatal("expected empty history.path error")
 	}
 }
+
+func TestPRDScaffoldAndNoOverwrite(t *testing.T) {
+	hist := t.TempDir()
+	req := Request{Key: "TEAM-7", HistoryRoot: hist, Type: TypePRD, YAMLRepos: []string{"api", "web"}, Tracker: config.Tracker{Kind: "jira", MCP: "tracker-mcp"}}
+	res, err := Run(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Action != ActionCreated || res.Type != TypePRD || len(res.Files) != 1 || res.Source != SourceTracker {
+		t.Fatalf("%+v", res)
+	}
+	path := filepath.Join(hist, "docs", "plans", "TEAM-7", PRDFileName)
+	if res.Files[0] != path || res.PRDFile != path {
+		t.Fatalf("files %v prd %s", res.Files, res.PRDFile)
+	}
+	entries, _ := os.ReadDir(filepath.Dir(path))
+	if len(entries) != 1 {
+		t.Fatalf("PRD run wrote more than PRD.md: %v", entries)
+	}
+	body, _ := os.ReadFile(path)
+	for _, want := range []string{"issue: TEAM-7", "type: prd", "tracker: jira"} {
+		if !strings.Contains(string(body), want) {
+			t.Fatalf("missing %q in\n%s", want, body)
+		}
+	}
+	if strings.Contains(string(body), "## Source notes") {
+		t.Fatal("Source notes section must be removed without --from")
+	}
+	st1, _ := os.Stat(path)
+	again, err := Run(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.Action != ActionFound || len(again.Files) != 1 || again.Files[0] != path {
+		t.Fatalf("%+v", again)
+	}
+	st2, _ := os.Stat(path)
+	body2, _ := os.ReadFile(path)
+	if !st1.ModTime().Equal(st2.ModTime()) || string(body) != string(body2) {
+		t.Fatal("second PRD run changed the file")
+	}
+}
+
+func TestPRDAndTRDDoNotBlockEachOther(t *testing.T) {
+	hist := t.TempDir()
+	trd := Request{Key: "TEAM-8", HistoryRoot: hist, YAMLRepos: []string{"api"}, Tier: "B"}
+	if _, err := Run(trd); err != nil {
+		t.Fatal(err)
+	}
+	prd, err := Run(Request{Key: "TEAM-8", HistoryRoot: hist, Type: TypePRD})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if prd.Action != ActionCreated {
+		t.Fatalf("TRD files blocked the PRD: %+v", prd)
+	}
+	foundTRD, err := Run(trd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if foundTRD.Action != ActionFound || foundTRD.PRDFile == "" {
+		t.Fatalf("TRD run should report PRD.md: %+v", foundTRD)
+	}
+	for _, f := range foundTRD.Files {
+		if filepath.Base(f) == PRDFileName {
+			t.Fatal("PRD.md listed as a TRD file")
+		}
+	}
+
+	hist2 := t.TempDir()
+	if _, err := Run(Request{Key: "TEAM-9", HistoryRoot: hist2, Type: TypePRD}); err != nil {
+		t.Fatal(err)
+	}
+	res, err := Run(Request{Key: "TEAM-9", HistoryRoot: hist2, YAMLRepos: []string{"api"}, Tier: "B"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Action != ActionCreated || res.PRDFile == "" {
+		t.Fatalf("PRD.md blocked the TRD: %+v", res)
+	}
+}
+
+func TestPRDFromAndFlagsAndDryRun(t *testing.T) {
+	hist := t.TempDir()
+	from := filepath.Join(t.TempDir(), "notes.md")
+	if err := os.WriteFile(from, []byte("Customers want saved carts.\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	dry, err := Run(Request{Key: "TEAM-10", HistoryRoot: hist, Type: TypePRD, DryRun: true, FromPath: from})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dry.Action != ActionDryRun {
+		t.Fatalf("%+v", dry)
+	}
+	if _, err := os.Stat(filepath.Join(hist, "docs")); !os.IsNotExist(err) {
+		t.Fatal("dry run wrote files")
+	}
+	res, err := Run(Request{Key: "TEAM-10", HistoryRoot: hist, Type: TypePRD, FromPath: from})
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := os.ReadFile(res.Files[0])
+	if !strings.Contains(string(body), "## Source notes\n\nCustomers want saved carts.") {
+		t.Fatalf("source notes missing:\n%s", body)
+	}
+	if _, err := os.Stat(filepath.Join(res.Dir, "REQUIREMENT.md")); !os.IsNotExist(err) {
+		t.Fatal("PRD run must not write REQUIREMENT.md")
+	}
+	if _, err := Run(Request{Key: "TEAM-11", HistoryRoot: hist, Type: TypePRD, Selected: []string{"api"}}); err == nil {
+		t.Fatal("expected --repo to fail for a PRD")
+	}
+	if _, err := Run(Request{Key: "TEAM-11", HistoryRoot: hist, Type: TypePRD, Tier: "A"}); err == nil {
+		t.Fatal("expected --tier to fail for a PRD")
+	}
+	if _, err := Run(Request{Key: "TEAM-11", HistoryRoot: hist, Type: "rfc"}); err == nil {
+		t.Fatal("expected unknown type to fail")
+	}
+}

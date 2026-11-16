@@ -57,9 +57,12 @@ func TestProjectCreateAddRemoveUseCurrentJSON(t *testing.T) {
 		t.Fatalf("%v", lj)
 	}
 
-	show, err := execute(t, "project", "show", "shop", "--json")
+	show, warn, err := executeSplit(t, nil, "project", "show", "shop", "--json")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !strings.Contains(warn, "project shop has no role; run: jarvis project update shop --role engineer|product") {
+		t.Fatalf("missing role warning on stderr: %q", warn)
 	}
 	var sj map[string]any
 	if err := json.Unmarshal([]byte(show), &sj); err != nil {
@@ -124,9 +127,12 @@ func TestProjectCreateUpdateTracker(t *testing.T) {
 	if err != nil || tok != "super-secret" {
 		t.Fatalf("token %q %v", tok, err)
 	}
-	show, err := execute(t, "project", "show", "shop", "--json")
+	show, warn, err := executeSplit(t, nil, "project", "show", "shop", "--json")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !strings.Contains(warn, "project shop has no role; run: jarvis project update shop --role engineer|product") {
+		t.Fatalf("missing role warning on stderr: %q", warn)
 	}
 	if strings.Contains(show, "super-secret") {
 		t.Fatal("token leaked in show json")

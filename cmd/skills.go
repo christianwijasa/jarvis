@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/christianwijasa/jarvis/internal/config"
 	"github.com/christianwijasa/jarvis/internal/install"
+	"github.com/christianwijasa/jarvis/internal/role"
 	"github.com/christianwijasa/jarvis/internal/upstream"
 	"github.com/christianwijasa/jarvis/skills"
 	"github.com/spf13/cobra"
@@ -21,7 +23,9 @@ func newSkillsCmd() *cobra.Command {
 		Long: `List catalog skills that are installed in this project versus still
 available to install. Shows global and local paths.
 
-Does not prompt. Pass --json for a schema_version object.
+Each skill shows whether it applies to the role of the active project
+(engineer or product). Does not prompt. Pass --json for a schema_version
+object with role, role_source, and per-skill roles and applies.
 Load one skill body with: jarvis skills show <name>`,
 		Example: `  jarvis skills
   jarvis skills --json
@@ -50,6 +54,8 @@ type skillsReport struct {
 	SchemaVersion string      `json:"schema_version"`
 	Kind          string      `json:"kind"`
 	SkillPack     string      `json:"skill_pack"`
+	Role          string      `json:"role"`
+	RoleSource    string      `json:"role_source"`
 	JarvisHome    string      `json:"jarvis_home,omitempty"`
 	Scope         string      `json:"scope,omitempty"`
 	LocalDir      string      `json:"local_dir,omitempty"`
@@ -62,6 +68,8 @@ type skillItem struct {
 	Mode        string         `json:"mode"`
 	Recommended bool           `json:"recommended,omitempty"`
 	Summary     string         `json:"summary,omitempty"`
+	Roles       []string       `json:"roles"`
+	Applies     bool           `json:"applies"`
 	Place       *install.Place `json:"place,omitempty"`
 }
 
@@ -71,6 +79,7 @@ func buildSkillsReport() (*skillsReport, error) {
 		return nil, err
 	}
 	cfg, projectRoot, _ := loadProjectConfig()
+	rr := role.Resolve(cfg)
 	installed := map[string]bool{}
 	if cfg != nil {
 		for _, n := range cfg.Skills.Installed {
@@ -81,6 +90,8 @@ func buildSkillsReport() (*skillsReport, error) {
 		SchemaVersion: SchemaVersion,
 		Kind:          "skills",
 		SkillPack:     skills.Version(),
+		Role:          rr.Role,
+		RoleSource:    rr.Source,
 		Installed:     []skillItem{},
 		Available:     []skillItem{},
 	}
@@ -97,6 +108,8 @@ func buildSkillsReport() (*skillsReport, error) {
 			Mode:        e.Mode,
 			Recommended: e.Recommended,
 			Summary:     e.Summary,
+			Roles:       e.EffectiveRoles(),
+			Applies:     e.HasRole(rr.Role),
 		}
 		if installed[e.Name] {
 			p := install.PlaceOf(cfg, projectRoot, e.Name)
@@ -118,6 +131,7 @@ func printSkillsText(cmd *cobra.Command, rep *skillsReport) {
 	if rep.Scope != "" {
 		fmt.Fprintf(out, "scope %s  local_dir %s\n", rep.Scope, rep.LocalDir)
 	}
+	fmt.Fprintf(out, "role %s (%s)\n", rep.Role, rep.RoleSource)
 	fmt.Fprintln(out, "Installed:")
 	if len(rep.Installed) == 0 {
 		fmt.Fprintln(out, "  (none)")
@@ -127,7 +141,7 @@ func printSkillsText(cmd *cobra.Command, rep *skillsReport) {
 		if item.Place != nil {
 			loc = formatPlace(*item.Place)
 		}
-		fmt.Fprintf(out, "  %-24s mode:%s  %s\n", item.Name, item.Mode, loc)
+		fmt.Fprintf(out, "  %-24s mode:%s  applies:%s  %s\n", item.Name, item.Mode, yesNo(item.Applies), loc)
 	}
 	fmt.Fprintln(out, "Available:")
 	for _, item := range rep.Available {
@@ -135,8 +149,15 @@ func printSkillsText(cmd *cobra.Command, rep *skillsReport) {
 		if item.Recommended {
 			rec = "recommended, "
 		}
-		fmt.Fprintf(out, "  %-24s %smode:%s  %s\n", item.Name, rec, item.Mode, item.Summary)
+		fmt.Fprintf(out, "  %-24s %smode:%s  applies:%s  %s\n", item.Name, rec, item.Mode, yesNo(item.Applies), item.Summary)
 	}
+}
+
+func yesNo(b bool) string {
+	if b {
+		return "yes"
+	}
+	return "no"
 }
 
 func formatPlace(p install.Place) string {
@@ -206,6 +227,13 @@ the body with schema_version.`,
 				}
 				return fmt.Errorf("unknown skill %q", name)
 			}
+			rr := role.Resolve(cfg)
+			applies := true
+			if reg, err := upstream.Load(); err == nil {
+				if e, ok := reg.Skill(name); ok {
+					applies = e.HasRole(rr.Role)
+				}
+			}
 			if asJSON {
 				return writeJSON(cmd.OutOrStdout(), skillShowJSON{
 					SchemaVersion: SchemaVersion,
@@ -213,8 +241,12 @@ the body with schema_version.`,
 					Name:          name,
 					Source:        source,
 					Mode:          modeOfMust(name),
+					Applies:       applies,
 					Body:          body,
 				})
+			}
+			if !applies {
+				fmt.Fprintf(cmd.ErrOrStderr(), "note: %s does not apply to role %s (active project).\n", name, rr.Role)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "# %s  %s\n\n", source, modeOfMust(name))
 			fmt.Fprint(cmd.OutOrStdout(), body)
@@ -232,23 +264,37 @@ type skillShowJSON struct {
 	Name          string `json:"name"`
 	Source        string `json:"source"`
 	Mode          string `json:"mode"`
+	Applies       bool   `json:"applies"`
 	Body          string `json:"body"`
 }
 
 func newSkillsInstallCmd() *cobra.Command {
-	var copyLocal bool
+	var copyLocal, force bool
+	var roleFlag string
 	cmd := &cobra.Command{
-		Use:   "install <name...>",
+		Use:   "install [name...]",
 		Short: "Install catalog skills at the pinned upstream commit (or bundled text)",
 		Long: `Install one or more catalog skills. Bundled skills are copied from this
 binary. Vendored skills are fetched at the pinned commit in upstream.yaml
 (git or gh tarball). Never follows HEAD or main.
 
+--role engineer|product installs that role's recommended set (no names
+needed). Run it once per role you use; installs add up.
+
+A local install never replaces a folder that Jarvis did not create, unless
+--force is passed. A local skills dir inside history.path is refused.
+
 Requires jarvis.yaml. Does not prompt. Use --copy to copy into the project
 instead of symlink.`,
 		Example: `  jarvis skills install grilling
-  jarvis skills install archify --copy`,
-		Args: cobra.MinimumNArgs(1),
+  jarvis skills install archify --copy
+  jarvis skills install --role product`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("role") {
+				return nil
+			}
+			return cobra.MinimumNArgs(1)(cmd, args)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, projectRoot, cfgPath, err := requireProjectConfig()
 			if err != nil {
@@ -261,13 +307,21 @@ instead of symlink.`,
 			if err != nil {
 				return err
 			}
+			names := append([]string{}, args...)
+			if cmd.Flags().Changed("role") {
+				r := strings.ToLower(strings.TrimSpace(roleFlag))
+				if !role.Valid(r) {
+					return fmt.Errorf("--role must be engineer or product (got %q)", roleFlag)
+				}
+				names = append(names, reg.SkillsForRole(r)...)
+			}
 			out := cmd.OutOrStdout()
-			for _, name := range args {
+			for _, name := range uniqueNames(names) {
 				entry, ok := reg.Skill(name)
 				if !ok {
 					return fmt.Errorf("unknown skill %q", name)
 				}
-				res, err := install.Install(cfg, projectRoot, entry, skillFetcher)
+				res, err := install.InstallWith(cfg, projectRoot, entry, skillFetcher, install.Options{Force: force})
 				if err != nil {
 					return err
 				}
@@ -285,7 +339,21 @@ instead of symlink.`,
 		},
 	}
 	cmd.Flags().BoolVar(&copyLocal, "copy", false, "copy into the project instead of symlink")
+	cmd.Flags().StringVar(&roleFlag, "role", "", "install the recommended set for a role: engineer or product")
+	cmd.Flags().BoolVar(&force, "force", false, "replace existing local skill folders that Jarvis did not create")
 	return cmd
+}
+
+func uniqueNames(in []string) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, n := range in {
+		if !seen[n] {
+			seen[n] = true
+			out = append(out, n)
+		}
+	}
+	return out
 }
 
 func newSkillsRemoveCmd() *cobra.Command {

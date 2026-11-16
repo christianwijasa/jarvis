@@ -148,3 +148,33 @@ func TestGHRemoteFallsBackToLsRemote(t *testing.T) {
 		t.Fatalf("sha=%q err=%v", sha, err)
 	}
 }
+
+func TestRegistryRoles(t *testing.T) {
+	reg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	prd, ok := reg.Skill("prd-planning")
+	if !ok {
+		t.Fatal("prd-planning missing from catalog")
+	}
+	if prd.Mode != ModeOriginal || !prd.Bundled() {
+		t.Fatalf("prd-planning mode %q bundled=%v", prd.Mode, prd.Bundled())
+	}
+	for _, e := range reg.Skills() {
+		if len(e.Roles) == 0 {
+			t.Fatalf("skill %s has no roles list", e.Name)
+		}
+	}
+	eng := strings.Join(reg.RecommendedSkillNames(), ",")
+	want := "archify,code-review,debugging,development,domain-modeling,generate-pr-description,graphify,grill-with-docs,grilling,test-case-design,trd-pr-planning"
+	if eng != want {
+		t.Fatalf("engineer set changed:\n got %s\nwant %s", eng, want)
+	}
+	if got := strings.Join(reg.SkillsForRole("product"), ","); got != "domain-modeling,grilling,prd-planning" {
+		t.Fatalf("product set %s", got)
+	}
+	if got := (Entry{Name: "old"}).EffectiveRoles(); len(got) != 1 || got[0] != DefaultRole {
+		t.Fatalf("missing roles should default to engineer, got %v", got)
+	}
+}

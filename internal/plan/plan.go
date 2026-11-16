@@ -22,7 +22,26 @@ const (
 	ActionDryRun  = "dry_run"
 	SourceTracker = "tracker"
 	SourceUser    = "user"
+
+	TypePRD = "prd"
+	TypeTRD = "trd"
+
+	PRDFileName = "PRD.md"
 )
+
+// ParseType checks a --type value. Empty stays empty (caller picks a default).
+func ParseType(v string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "":
+		return "", nil
+	case TypePRD:
+		return TypePRD, nil
+	case TypeTRD:
+		return TypeTRD, nil
+	default:
+		return "", fmt.Errorf("--type must be prd or trd (got %q)", v)
+	}
+}
 
 func ValidateKey(key string) error {
 	if !keyPattern.MatchString(key) {
@@ -37,6 +56,7 @@ type Data struct {
 	Tier        string
 	TestSource  string
 	ReposCSV    string
+	SourceNotes string
 }
 
 type Request struct {
@@ -49,6 +69,8 @@ type Request struct {
 	TokenSet    bool
 	FromPath    string
 	DryRun      bool
+	// Type is prd or trd. Empty means trd.
+	Type string
 }
 
 type Result struct {
@@ -61,6 +83,9 @@ type Result struct {
 	Tier       string
 	Repos      []string
 	TestSource string
+	Type       string
+	// PRDFile is the absolute path of PRD.md when it exists in the plan folder.
+	PRDFile string
 }
 
 func SourceOf(t config.Tracker, tokenSet bool) string {
@@ -89,6 +114,13 @@ func Run(req Request) (*Result, error) {
 	if err := ValidateKey(req.Key); err != nil {
 		return nil, err
 	}
+	typ, err := ParseType(req.Type)
+	if err != nil {
+		return nil, err
+	}
+	if typ == TypePRD {
+		return runPRD(req)
+	}
 	tier := strings.TrimSpace(req.Tier)
 	if tier == "" {
 		tier = "A"
@@ -109,8 +141,10 @@ func Run(req Request) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	existing := scanExisting(dir)
+	existing := scanExisting(dir, TypeTRD)
 	res := &Result{
+		Type:       TypeTRD,
+		PRDFile:    prdFile(dir),
 		Source:     source,
 		Dir:        dir,
 		Tracker:    req.Tracker,
@@ -172,6 +206,73 @@ func Run(req Request) (*Result, error) {
 	res.Action = ActionCreated
 	res.Files = abs
 	return res, nil
+}
+
+// runPRD scaffolds only PRD.md. It ignores the jarvis.yaml repo map and the
+// tier. --from content goes into the Source notes section, so no extra file
+// lands in the history repo.
+func runPRD(req Request) (*Result, error) {
+	if len(req.Selected) > 0 {
+		return nil, fmt.Errorf("--repo is for TRDs; a PRD has no repo list")
+	}
+	if strings.TrimSpace(req.Tier) != "" {
+		return nil, fmt.Errorf("--tier is for TRDs; a PRD has no tier")
+	}
+	source := SourceOf(req.Tracker, req.TokenSet)
+	dir := filepath.Join(req.HistoryRoot, "docs", "plans", req.Key)
+	path := filepath.Join(dir, PRDFileName)
+	res := &Result{
+		Type:     TypePRD,
+		Source:   source,
+		Dir:      dir,
+		Tracker:  req.Tracker,
+		TokenSet: req.TokenSet,
+		Repos:    []string{},
+		PRDFile:  prdFile(dir),
+	}
+	if existing := scanExisting(dir, TypePRD); len(existing) > 0 {
+		res.Action = ActionFound
+		res.Files = existing
+		return res, nil
+	}
+	if req.DryRun {
+		res.Action = ActionDryRun
+		res.Files = []string{path}
+		return res, nil
+	}
+	data := Data{Issue: req.Key, TrackerKind: strings.TrimSpace(req.Tracker.Kind)}
+	if src := strings.TrimSpace(req.FromPath); src != "" {
+		b, err := os.ReadFile(src)
+		if err != nil {
+			return nil, fmt.Errorf("read --from: %w", err)
+		}
+		data.SourceNotes = strings.TrimSpace(string(b))
+	}
+	body, err := render(PRDFileName, data)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return nil, err
+	}
+	if !strings.HasSuffix(body, "\n") {
+		body += "\n"
+	}
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		return nil, err
+	}
+	res.Action = ActionCreated
+	res.Files = []string{path}
+	res.PRDFile = path
+	return res, nil
+}
+
+func prdFile(dir string) string {
+	path := filepath.Join(dir, PRDFileName)
+	if st, err := os.Stat(path); err == nil && !st.IsDir() {
+		return path
+	}
+	return ""
 }
 
 func selectRepos(selected, yamlRepos []string) ([]string, error) {
@@ -237,13 +338,21 @@ func render(name string, data Data) (string, error) {
 	return b.String(), nil
 }
 
-func scanExisting(dir string) []string {
+// scanExisting lists files that already exist for one plan type. TRD files
+// never block a PRD, and PRD.md never blocks a TRD scaffold.
+func scanExisting(dir, typ string) []string {
 	var out []string
 	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info == nil || info.IsDir() {
 			return nil
 		}
 		base := info.Name()
+		if typ == TypePRD {
+			if base == PRDFileName && filepath.Dir(path) == dir {
+				out = append(out, path)
+			}
+			return nil
+		}
 		if (strings.HasPrefix(base, "TRD-") && strings.HasSuffix(base, ".md")) || base == "REQUIREMENT.md" {
 			out = append(out, path)
 		}

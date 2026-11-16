@@ -14,6 +14,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Scaffold or find a TRD in the history repo."
     local_path: skills/trd-pr-planning/SKILL.md
     mode: original
@@ -23,10 +24,25 @@ entries:
     licence: ""
     note: "Jarvis-written in the hub. No UPSTREAM.md or skills-lock row. De-BFI'd: history.path and repos from jarvis.yaml; removed bot names and bfi-finance URLs."
 
+  - name: prd-planning
+    kind: skill
+    pack: recommended
+    recommended: true
+    roles: [product]
+    summary: "Grill, then write a PRD in the history repo."
+    local_path: skills/prd-planning/SKILL.md
+    mode: original
+    upstream_repo: ""
+    upstream_path: ""
+    pinned_commit: ""
+    licence: ""
+    note: "Jarvis-written. Generic PRD method for the product role. No company, tracker, or repo names in the text."
+
   - name: grilling
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer, product]
     summary: "Interview rounds until shared understanding."
     local_path: skills/grilling/SKILL.md
     mode: adapted
@@ -40,6 +56,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Grill before writing a new TRD file."
     local_path: skills/grill-with-docs/SKILL.md
     mode: adapted
@@ -53,6 +70,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer, product]
     summary: "Glossary and ADRs in the history repo."
     local_path: skills/domain-modeling/SKILL.md
     mode: adapted
@@ -66,6 +84,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Write TRD-Testing.md for local checks."
     local_path: skills/test-case-design/SKILL.md
     mode: original
@@ -79,6 +98,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Karpathy + Ponytail implementation loop."
     local_path: skills/development/SKILL.md
     mode: adapted
@@ -92,6 +112,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Reproduce, trace the root cause, then fix."
     local_path: skills/debugging/SKILL.md
     mode: adapted
@@ -105,6 +126,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Standards + Spec review of a diff or PR."
     local_path: skills/code-review/SKILL.md
     mode: adapted
@@ -118,6 +140,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Short PR body from the git diff."
     local_path: skills/generate-pr-description/SKILL.md
     mode: original
@@ -131,6 +154,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Query a code graph to keep context small."
     local_path: skills/graphify/SKILL.md
     mode: adapted
@@ -144,6 +168,7 @@ entries:
     kind: skill
     pack: recommended
     recommended: true
+    roles: [engineer]
     summary: "Architecture diagrams (fetched at install from pin v3.2.0)."
     local_path: ""
     mode: vendored

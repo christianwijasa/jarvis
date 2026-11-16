@@ -96,9 +96,9 @@ func printAgentHelp(cmd *cobra.Command, asJSON bool) error {
 		SchemaVersion:     SchemaVersion,
 		Kind:              "agent_help",
 		Markdown:          md,
-		Workflow:          []string{"help --agent", "init", "doctor", "skills", "skills show", "project current", "project graph", "plan"},
+		Workflow:          []string{"help --agent", "init", "project current --json", "doctor", "skills", "skills show", "project graph", "plan"},
 		ExitCodes:         []exitCode{{"0", "success"}, {"1", "error"}},
-		NonInteractive:    []string{"--yes", "--recommended", "--skills", "--scope", "--copy", "--local-dir", "--agents-md", "--project", "--json", "--agent", "--repo", "--update", "--if-stale", "--repos", "--fetch", "--check", "--from", "--dry-run", "--tier", "--tracker-site", "--tracker-token", "--tracker-mcp"},
+		NonInteractive:    []string{"--yes", "--recommended", "--skills", "--scope", "--copy", "--local-dir", "--agents-md", "--project", "--json", "--agent", "--repo", "--update", "--if-stale", "--repos", "--fetch", "--check", "--from", "--dry-run", "--tier", "--tracker-site", "--tracker-token", "--tracker-mcp", "--type", "--role", "--unset-role", "--force"},
 		LoadSkill:         "jarvis skills show <name>",
 		JarvisHomeDefault: "~/.jarvis",
 	})

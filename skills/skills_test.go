@@ -6,7 +6,7 @@ import (
 )
 
 func TestVersionAndBundledSkills(t *testing.T) {
-	if Version() != "0.2.0" {
+	if Version() != "0.3.0" {
 		t.Fatalf("skill pack version: %q", Version())
 	}
 	names, err := Names()
@@ -16,7 +16,7 @@ func TestVersionAndBundledSkills(t *testing.T) {
 	want := []string{
 		"code-review", "debugging", "development", "domain-modeling",
 		"generate-pr-description", "graphify", "grill-with-docs", "grilling",
-		"test-case-design", "trd-pr-planning",
+		"prd-planning", "test-case-design", "trd-pr-planning",
 	}
 	got := strings.Join(names, ",")
 	for _, n := range want {
@@ -42,6 +42,18 @@ func TestVersionAndBundledSkills(t *testing.T) {
 	tree, err := Tree("grilling")
 	if err != nil || len(tree["SKILL.md"]) == 0 {
 		t.Fatalf("grilling tree: %v", err)
+	}
+	if len(tree["references/product-questions.md"]) == 0 {
+		t.Fatal("grilling product question set missing")
+	}
+	prd, err := Tree("prd-planning")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range []string{"SKILL.md", "references/acceptance-criteria.md", "references/prd-review-checklist.md"} {
+		if len(prd[f]) == 0 {
+			t.Errorf("prd-planning missing %s", f)
+		}
 	}
 }
 

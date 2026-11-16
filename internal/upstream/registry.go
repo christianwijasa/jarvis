@@ -17,6 +17,9 @@ const (
 	ModeAdapted  = "adapted"
 	ModeOriginal = "original"
 	KindSkill    = "skill"
+
+	// DefaultRole is the role a catalog entry serves when it has no roles list.
+	DefaultRole = "engineer"
 )
 
 // Registry is the machine-readable provenance file.
@@ -33,19 +36,20 @@ type Source struct {
 }
 
 type Entry struct {
-	Name         string `yaml:"name"`
-	Kind         string `yaml:"kind"`
-	Pack         string `yaml:"pack"`
-	Recommended  bool   `yaml:"recommended"`
-	Summary      string `yaml:"summary"`
-	LocalPath    string `yaml:"local_path"`
-	Mode         string `yaml:"mode"`
-	UpstreamRepo string `yaml:"upstream_repo"`
-	UpstreamPath string `yaml:"upstream_path"`
-	PinnedCommit string `yaml:"pinned_commit"`
-	PinnedTag    string `yaml:"pinned_tag"`
-	Licence      string `yaml:"licence"`
-	Note         string `yaml:"note"`
+	Name         string   `yaml:"name"`
+	Kind         string   `yaml:"kind"`
+	Pack         string   `yaml:"pack"`
+	Recommended  bool     `yaml:"recommended"`
+	Roles        []string `yaml:"roles,omitempty"`
+	Summary      string   `yaml:"summary"`
+	LocalPath    string   `yaml:"local_path"`
+	Mode         string   `yaml:"mode"`
+	UpstreamRepo string   `yaml:"upstream_repo"`
+	UpstreamPath string   `yaml:"upstream_path"`
+	PinnedCommit string   `yaml:"pinned_commit"`
+	PinnedTag    string   `yaml:"pinned_tag"`
+	Licence      string   `yaml:"licence"`
+	Note         string   `yaml:"note"`
 }
 
 // Load returns the embedded registry.
@@ -86,15 +90,41 @@ func (r *Registry) Skills() []Entry {
 	return out
 }
 
+// RecommendedSkillNames is the recommended set for the engineer role. It is
+// the set `jarvis init --yes` installs when no role is given.
 func (r *Registry) RecommendedSkillNames() []string {
+	return r.SkillsForRole(DefaultRole)
+}
+
+// SkillsForRole returns the sorted names of recommended skills whose roles
+// list contains role.
+func (r *Registry) SkillsForRole(role string) []string {
 	var out []string
 	for _, e := range r.Entries {
-		if e.Kind == KindSkill && e.Recommended {
+		if e.Kind == KindSkill && e.Recommended && e.HasRole(role) {
 			out = append(out, e.Name)
 		}
 	}
 	sort.Strings(out)
 	return out
+}
+
+// EffectiveRoles returns the roles list, or [engineer] when the entry has none.
+func (e Entry) EffectiveRoles() []string {
+	if len(e.Roles) == 0 {
+		return []string{DefaultRole}
+	}
+	return e.Roles
+}
+
+// HasRole reports whether the entry serves role.
+func (e Entry) HasRole(role string) bool {
+	for _, r := range e.EffectiveRoles() {
+		if r == role {
+			return true
+		}
+	}
+	return false
 }
 
 func (e Entry) HasUpstream() bool {

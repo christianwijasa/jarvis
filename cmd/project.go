@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -47,7 +48,7 @@ Read commands accept --json (schema_version jarvis.cli/v1).`,
 }
 
 func newProjectCreateCmd() *cobra.Command {
-	var desc string
+	var desc, roleFlag string
 	var repos []string
 	var tf trackerFlags
 	cmd := &cobra.Command{
@@ -61,11 +62,17 @@ pass flags; the name argument is enough. --repo may be repeated:
   name=url
   name=url@/abs/or/~/path
 
+--role engineer|product sets your role in this project. On a TTY without
+--role, Jarvis asks for it (Enter means engineer). Without a TTY, the
+project is saved with no role, behaves as engineer, and Jarvis prints a
+warning with the fix command.
+
 Tracker token is stored in $JARVIS_HOME/projects/<name>/secrets (mode 0600),
 never in project.yaml.`,
 		Example: `  jarvis project create shop --description "Checkout and payments" \
     --repo cart-service=https://github.com/example/cart-service.git \
-    --tracker-kind jira --tracker-site https://example.atlassian.net`,
+    --tracker-kind jira --tracker-site https://example.atlassian.net
+  jarvis project create shop-docs --role product`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
@@ -76,6 +83,13 @@ never in project.yaml.`,
 				return fmt.Errorf("project %q already exists", name)
 			}
 			p := &project.Project{SchemaVersion: project.SchemaVersion, Name: name, Description: desc}
+			if cmd.Flags().Changed("role") {
+				r := strings.ToLower(strings.TrimSpace(roleFlag))
+				if !project.ValidRole(r) {
+					return fmt.Errorf("--role must be engineer or product (got %q)", roleFlag)
+				}
+				p.Role = r
+			}
 			applyTrackerFlags(cmd, p, tf, true)
 			token := strings.TrimSpace(tf.token)
 			for _, spec := range repos {
@@ -88,6 +102,13 @@ never in project.yaml.`,
 				}
 			}
 			interactive := stdinIsTerminal(cmd.InOrStdin())
+			if interactive && !p.HasRole() {
+				r, err := askRole(cmd.InOrStdin(), cmd.ErrOrStderr(), name)
+				if err != nil && !errors.Is(err, errNoRoleAnswer) {
+					return err
+				}
+				p.Role = r
+			}
 			if interactive && desc == "" && len(repos) == 0 {
 				in := bufio.NewReader(cmd.InOrStdin())
 				if err := promptProject(cmd, in, p); err != nil {
@@ -117,18 +138,22 @@ never in project.yaml.`,
 			}
 			dir, _ := project.Dir(p.Name)
 			fmt.Fprintf(cmd.OutOrStdout(), "Created project %s at %s/%s\n", p.Name, dir, project.FileName)
+			if !p.HasRole() {
+				warnMissingRole(cmd, p.Name)
+			}
 			return nil
 		},
 	}
 	cmd.Flags().StringVar(&desc, "description", "", "optional description")
+	cmd.Flags().StringVar(&roleFlag, "role", "", "your role in this project: engineer or product")
 	cmd.Flags().StringArrayVar(&repos, "repo", nil, "repo spec name=url[@path] (repeatable)")
 	addTrackerFlags(cmd, &tf)
 	return cmd
 }
 
 func newProjectUpdateCmd() *cobra.Command {
-	var desc string
-	var unsetTracker, unsetToken bool
+	var desc, roleFlag string
+	var unsetTracker, unsetToken, unsetRole bool
 	var tf trackerFlags
 	cmd := &cobra.Command{
 		Use:   "update <name>",
@@ -137,9 +162,13 @@ func newProjectUpdateCmd() *cobra.Command {
 
 --unset-tracker clears kind/site/mcp/project in project.yaml.
 --unset-tracker-token deletes the secrets file.
+--role engineer|product sets your role in this project. --unset-role
+removes it (the project then behaves as engineer and Jarvis asks again on
+a TTY).
 On a TTY with no flags, Jarvis asks optional tracker questions (enter keeps current).`,
 		Example: `  jarvis project update shop --tracker-site https://example.atlassian.net --tracker-mcp plugin-atlassian-atlassian
-  jarvis project update shop --unset-tracker-token`,
+  jarvis project update shop --unset-tracker-token
+  jarvis project update shop --role product`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
@@ -152,7 +181,20 @@ On a TTY with no flags, Jarvis asks optional tracker questions (enter keeps curr
 			if unsetToken && cmd.Flags().Changed("tracker-token") {
 				return fmt.Errorf("do not combine --unset-tracker-token with --tracker-token")
 			}
-			flagsUsed := cmd.Flags().Changed("description") || anyTrackerFlag(cmd) || unsetTracker || unsetToken
+			if unsetRole && cmd.Flags().Changed("role") {
+				return fmt.Errorf("do not combine --unset-role with --role")
+			}
+			flagsUsed := cmd.Flags().Changed("description") || anyTrackerFlag(cmd) || unsetTracker || unsetToken || unsetRole || cmd.Flags().Changed("role")
+			if cmd.Flags().Changed("role") {
+				r := strings.ToLower(strings.TrimSpace(roleFlag))
+				if !project.ValidRole(r) {
+					return fmt.Errorf("--role must be engineer or product (got %q)", roleFlag)
+				}
+				p.Role = r
+			}
+			if unsetRole {
+				p.Role = ""
+			}
 			if cmd.Flags().Changed("description") {
 				p.Description = desc
 			}
@@ -201,6 +243,8 @@ On a TTY with no flags, Jarvis asks optional tracker questions (enter keeps curr
 	cmd.Flags().StringVar(&desc, "description", "", "replace description")
 	cmd.Flags().BoolVar(&unsetTracker, "unset-tracker", false, "clear tracker kind/site/mcp/project")
 	cmd.Flags().BoolVar(&unsetToken, "unset-tracker-token", false, "delete stored tracker token")
+	cmd.Flags().StringVar(&roleFlag, "role", "", "your role in this project: engineer or product")
+	cmd.Flags().BoolVar(&unsetRole, "unset-role", false, "remove the role (the project behaves as engineer)")
 	addTrackerFlags(cmd, &tf)
 	return cmd
 }
@@ -409,6 +453,7 @@ func newProjectListCmd() *cobra.Command {
 					summaries = append(summaries, map[string]any{
 						"name":        p.Name,
 						"description": p.Description,
+						"role":        p.Role,
 						"repos":       len(p.Repos),
 					})
 				}
@@ -435,15 +480,20 @@ func newProjectListCmd() *cobra.Command {
 func newProjectShowCmd() *cobra.Command {
 	var asJSON bool
 	cmd := &cobra.Command{
-		Use:     "show <name>",
-		Short:   "Show a project, its repos, and graph path",
-		Long: `Print project yaml fields, optional mcp list, and graph.json path.
+		Use:   "show <name>",
+		Short: "Show a project, its repos, and graph path",
+		Long: `Print project yaml fields, role, optional mcp list, and graph.json path.
+A repo with a url and no path is reference-only: it is shown, never cloned.
 
 If mcp omits cloud-logging, agents must not call the Cloud Logging server.`,
 		Example: `  jarvis project show shop --json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
+			if err != nil {
+				return err
+			}
+			rr, err := ensureProjectRole(cmd, p)
 			if err != nil {
 				return err
 			}
@@ -455,6 +505,8 @@ If mcp omits cloud-logging, agents must not call the Cloud Logging server.`,
 					"schema_version":    SchemaVersion,
 					"kind":              "project",
 					"project":           p,
+					"role":              rr.Role,
+					"role_source":       rr.Source,
 					"graph_dir":         gdir,
 					"graph_json":        gjson,
 					"tracker_token_set": tokenSet,
@@ -464,6 +516,7 @@ If mcp omits cloud-logging, agents must not call the Cloud Logging server.`,
 			if p.Description != "" {
 				fmt.Fprintf(cmd.OutOrStdout(), "  %s\n", p.Description)
 			}
+			fmt.Fprintf(cmd.OutOrStdout(), "role: %s (%s)\n", rr.Role, rr.Source)
 			fmt.Fprintf(cmd.OutOrStdout(), "tracker kind=%s site=%s mcp=%s token_set=%v\n", p.Tracker.Kind, p.Tracker.Site, p.Tracker.MCP, tokenSet)
 			if len(p.MCP) == 0 {
 				fmt.Fprintln(cmd.OutOrStdout(), "mcp: (none)")
@@ -522,16 +575,24 @@ cloned repositories or graphify-out. Requires --yes when stdin is not a TTY.`,
 
 func newProjectUseCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:     "use <name>",
-		Short:   "Set project: <name> in jarvis.yaml so agents know the active project",
+		Use:   "use <name>",
+		Short: "Set project: <name> in jarvis.yaml so agents know the active project",
+		Long: `Set the active project. Its role (engineer or product) decides which
+skills apply, what jarvis plan scaffolds, and what jarvis doctor checks.
+Agents must run jarvis project current --json again after this command.`,
 		Example: `  jarvis project use shop`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			if _, err := project.Load(name); err != nil {
+			p, err := project.Load(name)
+			if err != nil {
 				return err
 			}
 			cfg, _, cfgPath, err := requireProjectConfig()
+			if err != nil {
+				return err
+			}
+			rr, err := ensureProjectRole(cmd, p)
 			if err != nil {
 				return err
 			}
@@ -539,7 +600,8 @@ func newProjectUseCmd() *cobra.Command {
 			if err := config.Write(cfgPath, cfg); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Active project is %s (%s)\n", name, cfgPath)
+			fmt.Fprintf(cmd.OutOrStdout(), "Active project is %s (%s), role %s\n", name, cfgPath, rr.Role)
+			roleSkillsHint(cmd, cfg, rr)
 			return nil
 		},
 	}
@@ -548,8 +610,11 @@ func newProjectUseCmd() *cobra.Command {
 func newProjectCurrentCmd() *cobra.Command {
 	var asJSON bool
 	cmd := &cobra.Command{
-		Use:     "current",
-		Short:   "Print the active project from jarvis.yaml",
+		Use:   "current",
+		Short: "Print the active project and its role from jarvis.yaml",
+		Long: `Print the active project and its role. JSON adds role, role_source
+(project or default), role_skills, and plan_type (prd or trd). With no
+active project, the role is engineer and role_source is default.`,
 		Example: `  jarvis project current --json`,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -558,19 +623,27 @@ func newProjectCurrentCmd() *cobra.Command {
 			if cfg != nil {
 				name = cfg.Project
 			}
+			rr, err := ensureActiveRole(cmd, cfg)
+			if err != nil {
+				return err
+			}
 			if asJSON {
-				return writeJSON(cmd.OutOrStdout(), map[string]any{
+				out := map[string]any{
 					"schema_version": SchemaVersion,
 					"kind":           "project_current",
 					"project":        name,
 					"config_file":    cfgPath,
-				})
+				}
+				for k, v := range roleFields(rr) {
+					out[k] = v
+				}
+				return writeJSON(cmd.OutOrStdout(), out)
 			}
 			if name == "" {
-				fmt.Fprintln(cmd.OutOrStdout(), "(no active project)")
+				fmt.Fprintf(cmd.OutOrStdout(), "(no active project; role %s)\n", rr.Role)
 				return nil
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), name)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s (role %s)\n", name, rr.Role)
 			return nil
 		},
 	}
@@ -592,6 +665,9 @@ newly cloned repos. Existing paths are skipped.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
 			if err != nil {
+				return err
+			}
+			if err := productGuard(p); err != nil {
 				return err
 			}
 			results, err := project.Clone(p, dir, depth)
@@ -682,6 +758,12 @@ to stderr. Success is one stdout line with the combined graph path.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := project.Load(args[0])
 			if err != nil {
+				return err
+			}
+			if _, err := ensureProjectRole(cmd, p); err != nil {
+				return err
+			}
+			if err := productGuard(p); err != nil {
 				return err
 			}
 			var filter []string
