@@ -138,6 +138,27 @@ upstream change is a manual, reviewed pull request, per entry.
 
 Licence notices are in `LICENSES/`.
 
+## Credits
+
+Some skills and rules are adapted from, or fetched from, other projects.
+`upstream.yaml` lists each one with its pinned commit. Licence texts are in
+[`LICENSES/`](LICENSES/). Thank you to these authors.
+
+| Skill or rule | Kind | Upstream | Licence |
+| --- | --- | --- | --- |
+| `grilling` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock, [AI Hero](https://www.aihero.dev/skills)) | MIT |
+| `grill-with-docs` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock, [AI Hero](https://www.aihero.dev/grill-with-docs)) | MIT |
+| `domain-modeling` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock) | MIT |
+| `code-review` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock); also parts of [obra/superpowers](https://github.com/obra/superpowers) and [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MIT |
+| `development` | skill, adapted | [obra/superpowers](https://github.com/obra/superpowers) (Jesse Vincent); also [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MIT |
+| `debugging` | skill, adapted | [obra/superpowers](https://github.com/obra/superpowers) (Jesse Vincent) | MIT |
+| `graphify` | skill, adapted | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) (Safi Shamsi) | MIT |
+| `archify` | skill, vendored (fetched at install, not stored here) | [tt-a1i/archify](https://github.com/tt-a1i/archify) (tt-a1i, Cocoon AI) | Apache-2.0 (the `v3.2.0` tag tree also has an MIT licence file) |
+| `ponytail` | rule, adapted | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) (DietrichGebert) | MIT |
+| `karpathy-guidelines` | rule, adapted | [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills) | unknown (the repo has no LICENSE file) |
+
+All other skills and rules are original to this repo.
+
 ## Help for other AI agents
 
 Agents on any machine (Cursor, Claude Code, Codex, Copilot, …) should run

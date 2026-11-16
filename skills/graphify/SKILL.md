@@ -3,6 +3,12 @@ name: graphify
 description: "Use for any question about a codebase, its architecture, file relationships, or project content — especially when graphify-out/ exists, where the question should be treated as a graphify query first. Turns any input (code, docs, papers, images, videos) into a persistent knowledge graph with god nodes, community detection, and query/path/explain tools."
 ---
 
+<!--
+Adapted from https://github.com/Graphify-Labs/graphify graphify/skill.md at tag
+v0.9.15 (961b78e57a10e9c5bb98421ff3e45b40be73542b), MIT, Copyright (c) 2026
+Safi Shamsi. See LICENSES/graphify-MIT.txt.
+-->
+
 # /graphify
 
 Turn any folder of files into a navigable knowledge graph with community detection, an honest audit trail, and three outputs: interactive HTML, GraphRAG-ready JSON, and a plain-language GRAPH_REPORT.md.

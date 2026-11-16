@@ -178,3 +178,60 @@ func TestRegistryRoles(t *testing.T) {
 		t.Fatalf("missing roles should default to engineer, got %v", got)
 	}
 }
+
+// Every skill or rule taken from another project must name its source and
+// licence, carry a credit in its own text, and appear in the README Credits.
+func TestCreditsForNonOriginalEntries(t *testing.T) {
+	reg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	readme, err := os.ReadFile("../../README.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(readme)
+	start := strings.Index(text, "## Credits")
+	if start < 0 {
+		t.Fatal("README has no Credits section")
+	}
+	credits := text[start:]
+	if end := strings.Index(credits[len("## Credits"):], "\n## "); end >= 0 {
+		credits = credits[:len("## Credits")+end]
+	}
+	n := 0
+	for _, e := range reg.Entries {
+		if e.Mode == ModeOriginal {
+			continue
+		}
+		n++
+		repo := strings.TrimSpace(e.UpstreamRepo)
+		if repo == "" || strings.TrimSpace(e.Licence) == "" {
+			t.Errorf("%s: upstream_repo %q licence %q must not be empty", e.Name, repo, e.Licence)
+			continue
+		}
+		slug := strings.TrimPrefix(repo, "https://github.com/")
+		row := ""
+		for _, line := range strings.Split(credits, "\n") {
+			if strings.HasPrefix(line, "| `"+e.Name+"` |") {
+				row = line
+			}
+		}
+		if row == "" || !strings.Contains(row, repo) {
+			t.Errorf("%s: README Credits needs a row with %s", e.Name, repo)
+		}
+		if e.LocalPath != "" {
+			body, err := os.ReadFile("../../" + e.LocalPath)
+			if err != nil {
+				t.Errorf("%s: %v", e.Name, err)
+				continue
+			}
+			if !strings.Contains(string(body), slug) {
+				t.Errorf("%s: %s has no credit naming %s", e.Name, e.LocalPath, slug)
+			}
+		}
+	}
+	if n == 0 {
+		t.Fatal("expected non-original entries")
+	}
+}
