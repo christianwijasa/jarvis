@@ -298,3 +298,58 @@ func TestPRDFromAndFlagsAndDryRun(t *testing.T) {
 		t.Fatal("expected unknown type to fail")
 	}
 }
+
+// Scaffolds land in the team's history repo. No file may name the tool.
+func TestScaffoldsContainNoToolName(t *testing.T) {
+	from := filepath.Join(t.TempDir(), "notes.md")
+	if err := os.WriteFile(from, []byte("Customers want saved carts.\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	reqs := []Request{
+		{Key: "A-1", Tier: "A", YAMLRepos: []string{"api"}, Tracker: config.Tracker{Kind: "jira", Site: "https://example.atlassian.net"}},
+		{Key: "A-2", Tier: "A", YAMLRepos: []string{"api", "web"}, Selected: []string{"api", "web"}},
+		{Key: "B-1", Tier: "B", YAMLRepos: []string{"api"}, FromPath: from},
+		{Key: "C-1", Tier: "C", YAMLRepos: []string{"api"}, Tracker: config.Tracker{Kind: "jira", MCP: "tracker-mcp"}},
+		{Key: "P-1", Type: TypePRD, Tracker: config.Tracker{Kind: "jira", Site: "https://example.atlassian.net"}},
+		{Key: "P-2", Type: TypePRD, FromPath: from},
+	}
+	for _, req := range reqs {
+		req.HistoryRoot = t.TempDir()
+		res, err := Run(req)
+		if err != nil {
+			t.Fatalf("%s: %v", req.Key, err)
+		}
+		if len(res.Files) == 0 {
+			t.Fatalf("%s: no files", req.Key)
+		}
+		for _, f := range res.Files {
+			b, err := os.ReadFile(f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(strings.ToLower(string(b)), "jarvis") {
+				t.Errorf("%s: %s names the tool:\n%s", req.Key, f, b)
+			}
+		}
+		if strings.EqualFold(req.Tier, "A") {
+			b, _ := os.ReadFile(filepath.Join(res.Dir, "TRD-Architecture.md"))
+			if !strings.Contains(string(b), "test_source: TRD-Testing\n") {
+				t.Errorf("%s: tier A test_source:\n%s", req.Key, b)
+			}
+		}
+	}
+}
+
+func TestNormalizeTestSourceLegacyAlias(t *testing.T) {
+	cases := map[string]string{
+		"jarvis:TRD-Testing": "TRD-Testing",
+		"TRD-Testing":        "TRD-Testing",
+		"tracker:TEAM-1":     "tracker:TEAM-1",
+		"user-prompt":        "user-prompt",
+	}
+	for in, want := range cases {
+		if got := NormalizeTestSource(in); got != want {
+			t.Errorf("%q -> %q, want %q", in, got, want)
+		}
+	}
+}

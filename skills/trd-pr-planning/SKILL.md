@@ -99,12 +99,15 @@ docs/plans/<KEY>/<repo-name>/TRD-Implementation.md
 issue: TEAM-123
 tracker: jira
 tier: A | B | C
-test_source: jarvis:TRD-Testing | tracker:TEAM-123 | user-prompt | waived
+test_source: TRD-Testing | tracker:TEAM-123 | user-prompt | waived
 repos: [api]
 type: implementation
 status: draft
 ---
 ```
+
+Older plans may say `test_source: jarvis:TRD-Testing`. Treat it as
+`TRD-Testing`. Always write `TRD-Testing` in new or updated frontmatter.
 
 Story tiers: `jarvis.yaml` `tiers` (default when unsure: `tiers.default`).
 

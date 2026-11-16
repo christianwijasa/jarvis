@@ -27,7 +27,23 @@ const (
 	TypeTRD = "trd"
 
 	PRDFileName = "PRD.md"
+
+	// TestSourceTRDTesting is the test_source value for a Tier A TRD. It
+	// names no tool, because the scaffold lands in the team's history repo.
+	TestSourceTRDTesting = "TRD-Testing"
+	// LegacyTestSourceTRDTesting is the value v0.0.4 and older wrote. Readers
+	// accept it as an alias; Jarvis never writes it.
+	LegacyTestSourceTRDTesting = "jarvis:" + TestSourceTRDTesting
 )
+
+// NormalizeTestSource maps the legacy alias to TestSourceTRDTesting and
+// returns every other value unchanged.
+func NormalizeTestSource(v string) string {
+	if strings.TrimSpace(v) == LegacyTestSourceTRDTesting {
+		return TestSourceTRDTesting
+	}
+	return v
+}
 
 // ParseType checks a --type value. Empty stays empty (caller picks a default).
 func ParseType(v string) (string, error) {
@@ -132,7 +148,7 @@ func Run(req Request) (*Result, error) {
 	source := SourceOf(req.Tracker, req.TokenSet)
 	testSource := "tracker:" + req.Key
 	if strings.EqualFold(tier, "A") {
-		testSource = "jarvis:TRD-Testing"
+		testSource = TestSourceTRDTesting
 	} else if source == SourceUser {
 		testSource = "user-prompt"
 	}
