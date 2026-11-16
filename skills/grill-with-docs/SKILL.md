@@ -46,6 +46,7 @@ Read before starting:
 - Glossary + ADR layout in the history repo
 - Story tier with the user (`jarvis.yaml` `tiers`)
 - Existing glossary, `docs/adr/`, and `docs/plans/<JIRA-KEY>/` if present
+- `docs/plans/<KEY>/PRD.md` if present (the product owner's PRD for the same key)
 
 ## Dependencies (must load both)
 
@@ -69,7 +70,8 @@ If either dependency is missing, stop and report which skill failed to load.
    - **Tier A:** full grilling rounds until frontier empty.
    - **Tier B:** focus on integration vocabulary and Jira AC gaps; skip empty Testing-file topics.
    - **Tier C:** confirm scope, waive, and risks only — **no multi-round interview** when the user explicitly agrees.
-1. **Fetch facts** — Jira issue; graphify/code for existing behaviour; read PRD links from Jira when present.
+1. **Fetch facts** — read `PRD.md` in the plan folder first, then PRD links in the tracker; Jira issue; graphify/code for existing behaviour.
+   - Do not put settled PRD questions in a round. Start the frontier from what the PRD leaves open (gaps, conflicts with the code, technical design, open Engineering checks).
 2. **Grill** — follow grilling skill: one round = whole frontier, numbered questions + recommended answers, then wait (unless Tier C abbreviated path above).
    - **Diagram the gaps** (optional): when the story has 3+ states or services, add at most one diagram per round framed as _my reading of the story_, with `OPEN Qn` boxes tied to the numbered questions.
 3. **Model** — follow domain-modeling: resolve terms → glossary immediately; qualifying decisions → `docs/adr/`.

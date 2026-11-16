@@ -33,11 +33,35 @@ Confirm target repo(s) via `jarvis.yaml` `repos` (short name → local path).
 
 ## Find existing plan
 
+0. If `docs/plans/<KEY>/PRD.md` exists (or `jarvis plan --json` returns
+   `prd_file`), read it first. See [Starting from a PRD](#starting-from-a-prd).
 1. Given key `TEAM-123`, open `docs/plans/TEAM-123/` in the history repo.
 2. Read YAML **frontmatter** on `TRD-Architecture.md` or primary `TRD-Implementation.md` (`tier`, `test_source`, `repos`).
 3. Load that primary TRD body; pull `TRD-Testing.md`, per-repo impl, or `test-data-setup.md` only when tier or task requires them.
 4. If the folder is missing, search `docs/plans/` for the key.
 5. Use found docs for task analysis before writing code or opening PRs.
+
+## Starting from a PRD
+
+A PRD is the product owner's document for the same key. It sits next to the
+TRDs in `docs/plans/<KEY>/PRD.md`.
+
+- If the PRD has `status: signed-off`, its goals, scope, business rules,
+  acceptance criteria, edge cases, rollout, and decisions are **settled**. Do
+  not ask about them again. Ask only about gaps, conflicts between the PRD and
+  the code, and technical design.
+- If the PRD is still `draft` or `in-review`, tell the user and ask whether to
+  wait for sign-off or to plan against the draft.
+- **Answer every open Engineering check.** Answer each row from code or the
+  project graph. Record the answer in the TRD with the commit you read. Then
+  write the same answer back into the PRD "Engineering checks" table: set
+  `status` to `answered`, fill `answer` and `answered from (commit)`, and add a
+  link to the TRD section. The product owner reviews these answers in the PRD.
+  Change only those rows. Do not edit other PRD sections.
+- If the code conflicts with a signed-off PRD rule, raise it as a grilling
+  question. Do not change the rule silently in the TRD.
+- TRD acceptance and test cases link to the PRD acceptance criteria IDs
+  (`AC-1`, `AC-2`, ...) instead of copying them.
 
 ## Templates
 
@@ -75,12 +99,15 @@ docs/plans/<KEY>/<repo-name>/TRD-Implementation.md
 issue: TEAM-123
 tracker: jira
 tier: A | B | C
-test_source: jarvis:TRD-Testing | tracker:TEAM-123 | user-prompt | waived
+test_source: TRD-Testing | tracker:TEAM-123 | user-prompt | waived
 repos: [api]
 type: implementation
 status: draft
 ---
 ```
+
+Older plans may say `test_source: jarvis:TRD-Testing`. Treat it as
+`TRD-Testing`. Always write `TRD-Testing` in new or updated frontmatter.
 
 Story tiers: `jarvis.yaml` `tiers` (default when unsure: `tiers.default`).
 
@@ -93,7 +120,7 @@ Story tiers: `jarvis.yaml` `tiers` (default when unsure: `tiers.default`).
 2. If `jarvis plan --json` reports `source: tracker`, fetch the issue with the
    host MCP (`tracker_mcp`). If `source: user`, use the user’s requirement.
    Jarvis does not call the tracker API.
-3. Check `docs/plans/<KEY>/` — update existing doc if present, do not duplicate.
+3. Check `docs/plans/<KEY>/` — update existing doc if present, do not duplicate. If `PRD.md` is there, read it first ([Starting from a PRD](#starting-from-a-prd)).
 4. Confirm doc type: architecture, backend implementation, frontend implementation, or testing plan.
 5. **Classify story tier** with the user. Default is `jarvis.yaml` `tiers.default`. Record `tier` and `test_source`. **Tier A:** write `TRD-Testing.md` with [test-case-design](../test-case-design/SKILL.md). Never leave it empty. **Tier B:** skip `TRD-Testing.md` unless the user asks; Jira remains a valid test source. **Tier C:** minimal plan; user may waive full grill.
 6. Classify work: **New plan** / **Update** / **Major rewrite** (treat like new for grilling).

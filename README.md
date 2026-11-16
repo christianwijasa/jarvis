@@ -5,18 +5,18 @@ meant to replace an older mix of rules and stored design documents sitting
 in one repo.
 
 This repository is the **executable**. It is not the place Technical
-Requirements Documents (TRDs) live.
+Requirements Documents (TRDs) or Product Requirements Documents (PRDs) live.
 
 ## What lives where
 
 | Piece | Where |
 | --- | --- |
-| CLI, bundled skills, rules, TRD templates | this repo, released by version tag |
+| CLI, bundled skills, rules, PRD and TRD templates | this repo, released by version tag |
 | Project settings (Jira site, history path, repo map, gates, skill choice) | `jarvis.yaml` in the working tree you run Jarvis from |
 | Installed skill files | `$JARVIS_HOME/skills` (default `~/.jarvis/skills`) |
 | Named projects + combined graphs | `$JARVIS_HOME/projects/<name>/` |
 | Project-local skill links (optional) | `.agents/skills` (or `skills.local_dir`) |
-| TRDs and other design history | a **separate history repo** named in `jarvis.yaml` |
+| PRDs, TRDs, and other design history | a **separate history repo** named in `jarvis.yaml` |
 
 The core stays **tool-agnostic**. Jarvis does not assume a particular editor,
 agent, or chat product. Original and adapted skill text is shipped inside the
@@ -42,7 +42,7 @@ short description.
 | Skill | Role | In this repo |
 | --- | --- | --- |
 | `trd-pr-planning` | Scaffold / find a TRD in the history repo. Used by `jarvis plan`. | original |
-| `grilling` | Interview rounds until shared understanding. | adapted |
+| `grilling` | Interview rounds until shared understanding. Has a product question set. | adapted |
 | `grill-with-docs` | Grill before a new TRD file. | adapted |
 | `domain-modeling` | Glossary and ADRs in the history repo. | adapted |
 | `test-case-design` | Write `TRD-Testing.md`. | original |
@@ -52,6 +52,17 @@ short description.
 | `generate-pr-description` | Short PR body from the diff. | original |
 | `graphify` | Query a code graph instead of dumping trees into context. | adapted |
 | `archify` | Architecture diagrams. Fetched from tt-a1i/archify **v3.2.0** (`208acba`). Apache-2.0. | vendored (not in git) |
+
+The product role has its own set (see [Roles](#roles-per-project)):
+
+| Skill | Role | In this repo |
+| --- | --- | --- |
+| `prd-planning` | Grill, then write a PRD in the history repo. Used by `jarvis plan --type prd`. | original |
+| `grilling` | Same skill as above, with the product question set. | adapted |
+| `domain-modeling` | Glossary terms only under the product role. | adapted |
+
+`prd-planning` is not in the engineer set. An engineer can still run
+`jarvis skills install prd-planning`.
 
 Rules live in `rules/` (plain English, markdown format, commit/branch
 names, Karpathy, Ponytail, test-case and test-data gates, graph-first
@@ -100,7 +111,14 @@ follows `HEAD`/`main`. Changing the pin is a reviewed edit to
 `upstream.yaml`.
 
 `jarvis doctor` checks `git`, `gh`, `graphify`, `jarvis.yaml`, `JARVIS_HOME`,
-and that local skill links still resolve.
+and that local skill links still resolve. The checks follow the role of the
+active project (see [Roles](#roles-per-project)).
+
+A local install never replaces a folder that Jarvis did not create (no
+`.jarvis-pin` file and not a link into `$JARVIS_HOME`). Pass `--force` to
+replace it. If `skills.local_dir` resolves inside `history.path`, Jarvis
+refuses the local install, because a history repo can keep its own skills.
+Use `--scope global` for that setup.
 
 ## Upstream updates
 
@@ -119,6 +137,27 @@ and a compare URL. It never copies new text. Taking or ignoring an
 upstream change is a manual, reviewed pull request, per entry.
 
 Licence notices are in `LICENSES/`.
+
+## Credits
+
+Some skills and rules are adapted from, or fetched from, other projects.
+`upstream.yaml` lists each one with its pinned commit. Licence texts are in
+[`LICENSES/`](LICENSES/). Thank you to these authors.
+
+| Skill or rule | Kind | Upstream | Licence |
+| --- | --- | --- | --- |
+| `grilling` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock, [AI Hero](https://www.aihero.dev/skills)) | MIT |
+| `grill-with-docs` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock, [AI Hero](https://www.aihero.dev/grill-with-docs)) | MIT |
+| `domain-modeling` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock) | MIT |
+| `code-review` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock); also parts of [obra/superpowers](https://github.com/obra/superpowers) and [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MIT |
+| `development` | skill, adapted | [obra/superpowers](https://github.com/obra/superpowers) (Jesse Vincent); also [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MIT |
+| `debugging` | skill, adapted | [obra/superpowers](https://github.com/obra/superpowers) (Jesse Vincent) | MIT |
+| `graphify` | skill, adapted | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) (Safi Shamsi) | MIT |
+| `archify` | skill, vendored (fetched at install, not stored here) | [tt-a1i/archify](https://github.com/tt-a1i/archify) (tt-a1i, Cocoon AI) | Apache-2.0 (the `v3.2.0` tag tree also has an MIT licence file) |
+| `ponytail` | rule, adapted | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) (DietrichGebert) | MIT |
+| `karpathy-guidelines` | rule, adapted | [multica-ai/andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills) | unknown (the repo has no LICENSE file) |
+
+All other skills and rules are original to this repo.
 
 ## Help for other AI agents
 
@@ -188,6 +227,86 @@ When `jarvis.yaml` has `project: shop`, agents should run
 `jarvis project graph shop --if-stale`, then `graphify query` against the
 **project** graph before reading files across repos.
 
+## Roles (per project)
+
+Each project has a role in `project.yaml`: `engineer` or `product`. The
+role belongs to the project, not to a person or a machine. One person can
+be `product` in one project and `engineer` in another.
+
+```yaml
+schema_version: jarvis.project/v1
+name: shop-docs
+role: product   # engineer | product. Missing means engineer.
+repos: []       # may be empty for product
+```
+
+The role of the active project (`jarvis project use`) decides:
+
+| | `engineer` | `product` |
+| --- | --- | --- |
+| Skills that apply | the recommended set (10 bundled + archify) | `prd-planning`, `grilling`, `domain-modeling` |
+| `jarvis plan <KEY>` default | `--type trd` (TRD files) | `--type prd` (`PRD.md` only) |
+| `jarvis doctor` needs | `git`, `gh`, `graphify`, repo paths, graph stamps | `git`, the product skills, a `history.path` git checkout; `gh`, a history remote, and a tracker are warnings |
+| `jarvis project clone` / `graph` | yes | refused |
+
+```bash
+jarvis project create shop-docs --role product
+jarvis project update shop --role engineer
+jarvis project update shop --unset-role
+jarvis skills install --role product
+jarvis project current --json   # role, role_source, role_skills, plan_type
+jarvis plan TEAM-123            # PRD.md for product, TRDs for engineer
+jarvis plan TEAM-123 --type prd # either role may pick the other type
+```
+
+`jarvis plan --type prd` writes only `docs/plans/<KEY>/PRD.md`. It ignores
+the `repos` map, refuses `--repo` and `--tier`, and puts `--from` content in
+the PRD "Source notes" section. TRD files do not block a new `PRD.md`, and
+`PRD.md` does not block a TRD scaffold. When `PRD.md` exists, the TRD skills
+read it first and do not ask settled product questions again. Engineers
+answer the PRD "Engineering checks" in the TRD and copy each answer back
+into the PRD table with a link, so the product owner can review it.
+
+### Upgrading from v0.0.4 (projects with no role)
+
+No project stays without a role by accident:
+
+- On a human TTY, any command that uses a project with no role (`project
+  use`, `current`, `show`, `graph`, `plan`, `doctor`, and `project create`
+  without `--role`) asks once:
+  `What is your role in project <name>? [engineer/product]`. Enter means
+  `engineer`. Jarvis saves the answer to `project.yaml` and continues.
+- After `jarvis update` finishes on a TTY, Jarvis asks the same question
+  for every project in `$JARVIS_HOME/projects` that has no role. This runs
+  in the binary that does the update, so it starts with updates from
+  v0.0.5. For the v0.0.4 to v0.0.5 update, the first command above asks.
+- Without a TTY, or with `--json`, Jarvis never asks. The project behaves
+  as `engineer`, JSON reports `role_source: default`, and stderr gets one
+  warning: `project <name> has no role; run: jarvis project update <name>
+  --role engineer|product`.
+- `jarvis doctor` shows a missing role as a warning row with the same fix
+  command. It does not fail.
+- Agents must not guess. When `project current --json` shows
+  `role_source: default` for a set project, they ask the human and run
+  `jarvis project update <name> --role ...`.
+
+### Product quick start
+
+A product owner needs no `graphify` and no product-code clones. Keep the
+Jarvis files in a workspace folder outside the history repo:
+
+```bash
+git clone <history-repo-url> ~/work/history
+mkdir ~/work/product && cd ~/work/product
+jarvis init --role product --project shop-docs --scope global --yes
+# edit jarvis.yaml: history.path: ../history ; leave repos empty
+jarvis project update shop-docs --tracker-kind jira --tracker-site https://example.atlassian.net --tracker-mcp <host-mcp-id>
+jarvis doctor
+jarvis plan TEAM-123
+```
+
+Use `--scope global` so no skill folder is written into the history repo.
+
 ## Commands (proposal)
 
 The command list is still under discussion. Each command is a thin stub
@@ -199,15 +318,15 @@ so it is cheap to rename, split, or drop.
 | `jarvis help --agent` / `jarvis agent-help` | Compact markdown guide for AI agents. |
 | `jarvis version` | CLI version, skill-pack version, config path. `--json`. |
 | `jarvis update` | Latest GitHub Release tag (not `main`). `--check`, `--json`. |
-| `jarvis plan <KEY>` | Find or scaffold a TRD into `history.path`. Tracker-agnostic key. `--json`, `--from`, `--repo`, `--tier`. No model or tracker API. |
+| `jarvis plan <KEY>` | Find or scaffold a PRD or TRD into `history.path`. Tracker-agnostic key. `--type prd\|trd` (default from the role), `--json`, `--from`, `--repo`, `--tier`. No model or tracker API. |
 | `jarvis skills` | Installed vs available, with global/local paths. `--json`. |
 | `jarvis skills show <name>` | Prints an installed or bundled skill (how agents load a skill). `--json`. |
-| `jarvis skills install <name...>` | Fetch-at-pin or copy bundled text into `$JARVIS_HOME`. |
+| `jarvis skills install <name...>` | Fetch-at-pin or copy bundled text into `$JARVIS_HOME`. `--role <role>` installs that role's set. `--force` replaces a local folder Jarvis did not create. |
 | `jarvis skills remove <name>` | Deletes the global install and local link. |
 | `jarvis skills upstream` | Read-only pin vs latest for each registry row. `--json`. |
-| `jarvis doctor` | `git`, `gh`, **`graphify`**, `jarvis.yaml`, skill links, active project (missing paths warn). `--json`. |
-| `jarvis init` | Writes `jarvis.yaml` and installs the chosen skills. `--agents-md`, `--project`. |
-| `jarvis project …` | Named repo groups, clone, status, combined graphify graph. |
+| `jarvis doctor` | Checks follow the role. Engineer: `git`, `gh`, **`graphify`**, `jarvis.yaml`, skill links, active project (missing paths warn). Product: `git`, product skills, `history.path`. `--json`. |
+| `jarvis init` | Writes `jarvis.yaml` and installs the chosen skills. `--agents-md`, `--project`, `--role` (needs `--project`), `--force`. |
+| `jarvis project …` | Named repo groups, role, clone, status, combined graphify graph. `create`/`update` take `--role`; `update` takes `--unset-role`. |
 
 ## `jarvis.yaml`
 
@@ -224,7 +343,7 @@ Copy `jarvis.yaml.example` or run `jarvis init`, then edit:
 - `skills.copy` — `true` to copy instead of symlink
 - `skills.installed` — names chosen at init or via `jarvis skills install`
 - `skills.home` — optional override for `JARVIS_HOME`
-- `project` — active named project (`jarvis project use`)
+- `project` — active named project (`jarvis project use`). The role lives in that project's `project.yaml`, not here.
 
 Jarvis looks for `jarvis.yaml` in the current directory, then parent
 directories.

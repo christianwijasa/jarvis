@@ -20,6 +20,7 @@ Before planning or editing in this repository, run:
 Use ` + "`jarvis help --agent --json`" + ` for machine-readable help (` + "`schema_version`" + ` ` + SchemaVersion + `).
 Prefer non-interactive flags (` + "`--yes`" + `, ` + "`--skills`" + `, ` + "`--scope`" + `). Do not wait on Jarvis prompts.
 Load a skill with ` + "`jarvis skills show <name>`" + `.
+Run ` + "`jarvis project current --json`" + ` to learn the active role.
 `
 
 func upsertAgentsMD(path string) (string, error) {

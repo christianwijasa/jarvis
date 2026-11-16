@@ -27,7 +27,11 @@ verified when SHA256SUMS is attached to the release. The install path
 must be writable; if replace fails, retry with sudo jarvis update.
 
 --check prints current vs latest and downloads nothing.
-This command does not prompt. Progress goes to stderr.
+The update itself does not prompt. Progress goes to stderr.
+
+After an update on a human TTY (not --check, not --json), Jarvis checks
+every project in $JARVIS_HOME/projects and asks your role
+(engineer/product) for each one that has none. Enter means engineer.
 
 On a human TTY, other commands may offer the same install (zsh-style
 [Y/n]). That nag is skipped without a TTY, with --json, for help
@@ -66,9 +70,12 @@ JARVIS_DISABLE_UPDATE_PROMPT applies without asking.`,
 			}
 			if res.Updated {
 				fmt.Fprintf(cmd.OutOrStdout(), "installed %s to %s\n", res.Latest, res.Path)
-				return nil
+			} else {
+				fmt.Fprintf(cmd.OutOrStdout(), "already %s\n", res.Latest)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "already %s\n", res.Latest)
+			if canPromptRole(cmd) {
+				return askMissingRoles(cmd)
+			}
 			return nil
 		},
 	}

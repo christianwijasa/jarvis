@@ -38,6 +38,23 @@ func executeIn(t *testing.T, stdin io.Reader, args ...string) (string, error) {
 	return buf.String(), err
 }
 
+// executeSplit runs a command and returns stdout and stderr apart, so JSON on
+// stdout can be parsed while warnings go to stderr.
+func executeSplit(t *testing.T, stdin io.Reader, args ...string) (string, string, error) {
+	t.Helper()
+	cmd := NewRootCmd()
+	stdout, stderr := new(bytes.Buffer), new(bytes.Buffer)
+	cmd.SetOut(stdout)
+	cmd.SetErr(stderr)
+	if stdin == nil {
+		stdin = bytes.NewReader(nil)
+	}
+	cmd.SetIn(stdin)
+	cmd.SetArgs(args)
+	err := cmd.Execute()
+	return stdout.String(), stderr.String(), err
+}
+
 func TestRootWiresExpectedCommands(t *testing.T) {
 	root := NewRootCmd()
 	want := []string{"version", "update", "plan", "skills", "doctor", "init", "agent-help", "project"}
@@ -71,7 +88,7 @@ func TestVersionOutput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, need := range []string{"CLI version:", buildinfo.Version, "Skill pack:", "0.2.0", "Config file:"} {
+	for _, need := range []string{"CLI version:", buildinfo.Version, "Skill pack:", "0.3.0", "Config file:"} {
 		if !strings.Contains(out, need) {
 			t.Errorf("version output missing %q\n%s", need, out)
 		}

@@ -16,7 +16,26 @@ const (
 	FileName        = "project.yaml"
 	SchemaVersion   = "jarvis.project/v1"
 	DefaultGraphRel = "graphify-out"
+
+	// RoleEngineer and RoleProduct are the roles a project can have. A
+	// project with no role behaves as RoleEngineer.
+	RoleEngineer = "engineer"
+	RoleProduct  = "product"
 )
+
+// Roles is the closed set of valid project roles.
+var Roles = []string{RoleEngineer, RoleProduct}
+
+// ValidRole reports whether r is a known role. Empty is not valid here;
+// callers treat empty as "not set".
+func ValidRole(r string) bool {
+	for _, v := range Roles {
+		if r == v {
+			return true
+		}
+	}
+	return false
+}
 
 var (
 	ErrNotFound = errors.New("project not found")
@@ -29,6 +48,7 @@ type Project struct {
 	SchemaVersion string         `yaml:"schema_version" json:"schema_version"`
 	Name          string         `yaml:"name" json:"name"`
 	Description   string         `yaml:"description,omitempty" json:"description,omitempty"`
+	Role          string         `yaml:"role,omitempty" json:"role,omitempty"`
 	Tracker       config.Tracker `yaml:"tracker,omitempty" json:"tracker,omitempty"`
 	MCP           []string       `yaml:"mcp,omitempty" json:"mcp,omitempty"`
 	Logging       Logging        `yaml:"logging,omitempty" json:"logging,omitempty"`
@@ -70,9 +90,25 @@ func (p *Project) UsesMCP(id string) bool {
 	return false
 }
 
+// EffectiveRole returns the stored role, or RoleEngineer when none is set.
+func (p *Project) EffectiveRole() string {
+	if p == nil || strings.TrimSpace(p.Role) == "" {
+		return RoleEngineer
+	}
+	return p.Role
+}
+
+// HasRole reports whether the project stores a role in project.yaml.
+func (p *Project) HasRole() bool {
+	return p != nil && strings.TrimSpace(p.Role) != ""
+}
+
 func (p *Project) Validate() error {
 	if err := ValidateName(p.Name); err != nil {
 		return err
+	}
+	if p.Role != "" && !ValidRole(p.Role) {
+		return fmt.Errorf("role %q must be one of: %s", p.Role, strings.Join(Roles, ", "))
 	}
 	seenMCP := map[string]bool{}
 	for _, id := range p.MCP {

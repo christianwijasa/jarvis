@@ -148,3 +148,90 @@ func TestGHRemoteFallsBackToLsRemote(t *testing.T) {
 		t.Fatalf("sha=%q err=%v", sha, err)
 	}
 }
+
+func TestRegistryRoles(t *testing.T) {
+	reg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	prd, ok := reg.Skill("prd-planning")
+	if !ok {
+		t.Fatal("prd-planning missing from catalog")
+	}
+	if prd.Mode != ModeOriginal || !prd.Bundled() {
+		t.Fatalf("prd-planning mode %q bundled=%v", prd.Mode, prd.Bundled())
+	}
+	for _, e := range reg.Skills() {
+		if len(e.Roles) == 0 {
+			t.Fatalf("skill %s has no roles list", e.Name)
+		}
+	}
+	eng := strings.Join(reg.RecommendedSkillNames(), ",")
+	want := "archify,code-review,debugging,development,domain-modeling,generate-pr-description,graphify,grill-with-docs,grilling,test-case-design,trd-pr-planning"
+	if eng != want {
+		t.Fatalf("engineer set changed:\n got %s\nwant %s", eng, want)
+	}
+	if got := strings.Join(reg.SkillsForRole("product"), ","); got != "domain-modeling,grilling,prd-planning" {
+		t.Fatalf("product set %s", got)
+	}
+	if got := (Entry{Name: "old"}).EffectiveRoles(); len(got) != 1 || got[0] != DefaultRole {
+		t.Fatalf("missing roles should default to engineer, got %v", got)
+	}
+}
+
+// Every skill or rule taken from another project must name its source and
+// licence, carry a credit in its own text, and appear in the README Credits.
+func TestCreditsForNonOriginalEntries(t *testing.T) {
+	reg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	readme, err := os.ReadFile("../../README.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(readme)
+	start := strings.Index(text, "## Credits")
+	if start < 0 {
+		t.Fatal("README has no Credits section")
+	}
+	credits := text[start:]
+	if end := strings.Index(credits[len("## Credits"):], "\n## "); end >= 0 {
+		credits = credits[:len("## Credits")+end]
+	}
+	n := 0
+	for _, e := range reg.Entries {
+		if e.Mode == ModeOriginal {
+			continue
+		}
+		n++
+		repo := strings.TrimSpace(e.UpstreamRepo)
+		if repo == "" || strings.TrimSpace(e.Licence) == "" {
+			t.Errorf("%s: upstream_repo %q licence %q must not be empty", e.Name, repo, e.Licence)
+			continue
+		}
+		slug := strings.TrimPrefix(repo, "https://github.com/")
+		row := ""
+		for _, line := range strings.Split(credits, "\n") {
+			if strings.HasPrefix(line, "| `"+e.Name+"` |") {
+				row = line
+			}
+		}
+		if row == "" || !strings.Contains(row, repo) {
+			t.Errorf("%s: README Credits needs a row with %s", e.Name, repo)
+		}
+		if e.LocalPath != "" {
+			body, err := os.ReadFile("../../" + e.LocalPath)
+			if err != nil {
+				t.Errorf("%s: %v", e.Name, err)
+				continue
+			}
+			if !strings.Contains(string(body), slug) {
+				t.Errorf("%s: %s has no credit naming %s", e.Name, e.LocalPath, slug)
+			}
+		}
+	}
+	if n == 0 {
+		t.Fatal("expected non-original entries")
+	}
+}

@@ -12,7 +12,8 @@ Jarvis is a small, tool-agnostic CLI for software-team planning.
 It is not an editor plugin. It does not call a model or a tracker API.
 
 - Project settings: `jarvis.yaml` (tracker, history repo, repo map, gates, skill choice).
-- TRDs (design docs): a **separate history repo** named in `jarvis.yaml` (`history.path`), not this CLI repo.
+- PRDs (product requirements) and TRDs (design docs): a **separate history repo** named in `jarvis.yaml` (`history.path`), not this CLI repo.
+- Each project has a role (`engineer` or `product`) in `project.yaml`. The role of the active project decides which skills apply, what `jarvis plan` scaffolds, and what `jarvis doctor` checks.
 - Bundled skill text (original/adapted) ships in the binary.
 - Vendored skills (archify) are fetched at a **pinned commit** from `upstream.yaml`. Never pull `HEAD`/`main`.
 - Rules live in the Jarvis repo (`rules/`) and stay in-tree.
@@ -21,11 +22,12 @@ It is not an editor plugin. It does not call a model or a tracker API.
 
 1. `jarvis help --agent` (this document) or `jarvis help --agent --json`
 2. `jarvis init --yes` (or `--recommended` / `--skills` plus `--scope`) in the working repo
-3. `jarvis doctor` — fail if not ok
-4. `jarvis skills` — see what is installed
-5. `jarvis skills show <name>` — load a skill body before following it
-6. `jarvis plan <KEY>` — find or scaffold a TRD into `history.path` (`source: tracker` or `source: user`)
-7. `jarvis project current` / `show --json` / `graph` — combined graph across sibling repos
+3. `jarvis project current --json` — read `role`, `role_source`, `role_skills`, `plan_type`
+4. `jarvis doctor` — fail if not ok
+5. `jarvis skills` — see what is installed
+6. `jarvis skills show <name>` — load a skill body before following it
+7. `jarvis plan <KEY>` — find or scaffold a PRD (product) or TRD (engineer) into `history.path` (`source: tracker` or `source: user`)
+8. `jarvis project show --json` / `graph` — combined graph across sibling repos (engineer only)
 
 ## Where skills live
 
@@ -48,18 +50,29 @@ Rules: shipped under `rules/` in the Jarvis CLI repo, not installed per project.
 | `jarvis help --agent` | First thing an agent should run | No prompts |
 | `jarvis agent-help` | Alias of `help --agent` | No prompts |
 | `jarvis version` | Identify the binary and skill pack | `--json` |
-| `jarvis doctor` | Check git, gh, graphify, jarvis.yaml, skill links | `--json`; exit 1 if any check fails |
-| `jarvis init` | Create `jarvis.yaml` and install skills | Requires `--yes` or `--recommended` or `--skills` when stdin is not a TTY. Optional `--scope`, `--copy`, `--local-dir`, `--agents-md` |
+| `jarvis doctor` | Check tools, jarvis.yaml, skills, history path; checks follow the role | `--json` (adds `role`, `role_source`); exit 1 if any check fails |
+| `jarvis init` | Create `jarvis.yaml` and install skills | Requires `--yes` or `--recommended` or `--skills` when stdin is not a TTY. Optional `--scope`, `--copy`, `--local-dir`, `--agents-md`, `--force`. `--role engineer\|product` needs `--project` |
 | `jarvis skills` | List installed vs available | `--json` |
 | `jarvis skills show <name>` | **Load a skill** (print SKILL.md) | `--json` |
-| `jarvis skills install <name...>` | Install catalog entries at the pin | Needs `jarvis.yaml`; `--copy` |
+| `jarvis skills install <name...>` | Install catalog entries at the pin | Needs `jarvis.yaml`; `--copy`; `--role <role>` installs that role's set; `--force` replaces a local folder Jarvis did not create |
 | `jarvis skills remove <name>` | Uninstall | Needs `jarvis.yaml` |
 | `jarvis skills upstream` | Read-only pin vs latest | `--json`; never applies updates |
-| `jarvis plan <KEY>` | Find or scaffold TRD via `trd-pr-planning` | `--json`; `--from`; no model/tracker API. `source: tracker` uses host MCP; `source: user` uses markdown. Never read project secrets. |
+| `jarvis plan <KEY>` | Find or scaffold a PRD (`prd-planning`) or TRD (`trd-pr-planning`) | `--json`; `--type prd\|trd` (default from the role); `--from`; `--repo` / `--tier` are TRD only; no model/tracker API. `source: tracker` uses host MCP; `source: user` uses markdown. Never read project secrets. |
 | `jarvis update` | Latest **tag**, not main | needs `gh`; `--check` / `--json`; never follows `main` |
 | `jarvis project list` / `show` / `current` / `graph-path` / `status` | Named repo groups and graph location | `--json` on these reads; status SHA freshness vs origin; `--fetch` optional |
 | `jarvis project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; `--if-stale` fetches origin and extracts only stale SHAs; empty extract falls back to in-repo `graphify-out` or skips |
-| `jarvis project create` / `update` / `add-repo` / `clone` / `use` / `delete` | Mutate project yaml | create/update take optional `--tracker-*`; token in secrets not yaml; delete needs `--yes` off TTY |
+| `jarvis project create` / `update` / `add-repo` / `clone` / `use` / `delete` | Mutate project yaml | create/update take optional `--tracker-*` and `--role engineer\|product`; update takes `--unset-role`; token in secrets not yaml; delete needs `--yes` off TTY; clone and graph refuse a product project |
+
+## Roles (per project)
+
+Run `jarvis project current --json` first, and again after every `jarvis project use`. Read `role`, `role_source`, `role_skills`, and `plan_type`.
+
+- `role: product`: load only the skills in `role_skills`. Run `jarvis plan <KEY>` (PRD by default). Do not build graphs, clone repos, or read product code. Mark questions about current system behavior as "needs engineering check".
+- `role: engineer`: the normal flow. If `jarvis plan --json` returns `prd_file`, read that PRD before grilling.
+- No active project means `engineer`.
+- `role_source: default` with a project set means the project has **no role** yet. Ask the human for their role in that project, then run `jarvis project update <name> --role engineer` or `--role product`. Never guess the role. Until then Jarvis behaves as engineer and prints a warning on stderr.
+- A human TTY is asked for a missing role once (`What is your role in project <name>? [engineer/product]`). Without a TTY or with `--json`, Jarvis never asks.
+- If `project current --json` has no `role` field, the binary is older than roles. Ask the human to run `jarvis update`.
 
 ## How to load a skill
 
@@ -103,6 +116,7 @@ jarvis init --yes --project shop
 ```
 
 `--yes` = recommended skill set (10 bundled + archify) and scope `both`, unless `--skills` / `--scope` override.
+`jarvis init --role product --project <name> --scope global --yes` installs the product set (`prd-planning`, `grilling`, `domain-modeling`) and writes `repos: {}`.
 `--agents-md` appends a marked block to `AGENTS.md` telling agents to run `jarvis help --agent` first. It never overwrites a whole existing file; re-running refreshes the marked block only.
 
 ## Exit codes
@@ -138,6 +152,9 @@ Unknown `schema_version` means the agent should not guess the rest of the shape.
 
 ## Catalog (recommended set)
 
-Bundled (in the binary): `trd-pr-planning`, `grilling`, `grill-with-docs`, `domain-modeling`, `test-case-design`, `development`, `debugging`, `code-review`, `generate-pr-description`, `graphify`.
+Bundled (in the binary): `trd-pr-planning`, `prd-planning`, `grilling`, `grill-with-docs`, `domain-modeling`, `test-case-design`, `development`, `debugging`, `code-review`, `generate-pr-description`, `graphify`.
+
+Engineer role set: the 10 bundled skills other than `prd-planning`, plus `archify`.
+Product role set: `prd-planning`, `grilling`, `domain-modeling`.
 
 Vendored (fetch at pin): `archify` (tt-a1i/archify v3.2.0).

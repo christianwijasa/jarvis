@@ -1,6 +1,7 @@
 package install
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,9 +23,27 @@ type Result struct {
 	Source string // bundled or vendored
 }
 
+// Options change how Install places a skill.
+type Options struct {
+	// Force replaces an existing local folder that Jarvis did not create.
+	Force bool
+}
+
+// Install writes one skill with default options (no --force).
 func Install(cfg *config.Config, projectRoot string, entry upstream.Entry, fetcher Fetcher) (Result, error) {
+	return InstallWith(cfg, projectRoot, entry, fetcher, Options{})
+}
+
+// InstallWith writes one skill into $JARVIS_HOME/skills and, for scope local
+// or both, links or copies it into the project-local skills dir.
+func InstallWith(cfg *config.Config, projectRoot string, entry upstream.Entry, fetcher Fetcher, opts Options) (Result, error) {
 	var r Result
 	r.Name = entry.Name
+	if cfg != nil && cfg.Skills.UsesLocal() {
+		if err := CheckLocalTarget(cfg, projectRoot, entry.Name, opts.Force); err != nil {
+			return r, err
+		}
+	}
 	globalRoot, err := config.GlobalSkillsDir(cfg)
 	if err != nil {
 		return r, err
@@ -80,6 +99,90 @@ func Install(cfg *config.Config, projectRoot string, entry upstream.Entry, fetch
 		r.Copied = copied
 	}
 	return r, nil
+}
+
+// ErrLocalInsideHistory means skills.local_dir resolves inside history.path.
+var ErrLocalInsideHistory = errors.New("skills.local_dir is inside history.path; use --scope global for this setup")
+
+// LocalInsideHistory reports whether the project-local skills dir resolves to
+// a path inside history.path. A history repo can keep its own skills, and a
+// local install there would replace them.
+func LocalInsideHistory(cfg *config.Config, projectRoot string) bool {
+	if cfg == nil || strings.TrimSpace(cfg.History.Path) == "" {
+		return false
+	}
+	hist, err := config.AbsPath(projectRoot, cfg.History.Path)
+	if err != nil {
+		return false
+	}
+	local, err := filepath.Abs(config.LocalSkillsDir(cfg, projectRoot))
+	if err != nil {
+		return false
+	}
+	return within(resolve(hist), resolve(local))
+}
+
+// CheckLocalTarget refuses a local placement that would delete files Jarvis
+// does not own: a local dir inside history.path, or an existing folder that
+// is not a link into $JARVIS_HOME and has no Jarvis pin file. force skips the
+// second check only.
+func CheckLocalTarget(cfg *config.Config, projectRoot, name string, force bool) error {
+	if LocalInsideHistory(cfg, projectRoot) {
+		return ErrLocalInsideHistory
+	}
+	if force {
+		return nil
+	}
+	localDest := filepath.Join(config.LocalSkillsDir(cfg, projectRoot), name)
+	st, err := os.Lstat(localDest)
+	if err != nil {
+		return nil
+	}
+	if st.Mode()&os.ModeSymlink != 0 {
+		target, err := filepath.EvalSymlinks(localDest)
+		globalRoot, gerr := config.GlobalSkillsDir(cfg)
+		if err != nil || gerr != nil {
+			// A broken link holds no files; replacing it loses nothing.
+			return nil
+		}
+		home := filepath.Dir(globalRoot)
+		if within(resolve(home), target) {
+			return nil
+		}
+		return fmt.Errorf("%s is a link to %s, not into %s; pass --force to replace it", localDest, target, home)
+	}
+	if st.IsDir() {
+		if _, err := os.Stat(filepath.Join(localDest, pinFile)); err == nil {
+			return nil
+		}
+	}
+	return fmt.Errorf("%s exists and was not installed by Jarvis; pass --force to replace it", localDest)
+}
+
+// resolve follows symlinks in the longest existing prefix of p, so a path
+// that does not exist yet still compares correctly.
+func resolve(p string) string {
+	p = filepath.Clean(p)
+	rest := ""
+	for {
+		if r, err := filepath.EvalSymlinks(p); err == nil {
+			return filepath.Join(r, rest)
+		}
+		parent := filepath.Dir(p)
+		if parent == p {
+			return filepath.Join(p, rest)
+		}
+		rest = filepath.Join(filepath.Base(p), rest)
+		p = parent
+	}
+}
+
+func within(root, p string) bool {
+	rel, err := filepath.Rel(root, p)
+	if err != nil {
+		return false
+	}
+	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
 }
 
 func Remove(cfg *config.Config, projectRoot, name string) error {

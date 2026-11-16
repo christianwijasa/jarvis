@@ -3,6 +3,7 @@ package project
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -204,5 +205,52 @@ func TestTokenSecrets(t *testing.T) {
 	}
 	if TokenSet("shop") {
 		t.Fatal("token should be gone")
+	}
+}
+
+func TestRoleRoundTrip(t *testing.T) {
+	home := withHome(t)
+	plain := &Project{Name: "shop", Repos: []Repo{{Name: "cart-service"}}}
+	if err := Save(plain); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(home, "projects", "shop", FileName)
+	before, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := Load("shop")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.HasRole() || got.EffectiveRole() != RoleEngineer {
+		t.Fatalf("missing role: has=%v effective=%s", got.HasRole(), got.EffectiveRole())
+	}
+	if err := Save(got); err != nil {
+		t.Fatal(err)
+	}
+	after, _ := os.ReadFile(path)
+	if string(before) != string(after) {
+		t.Fatalf("file without role changed on save:\n%s\n---\n%s", before, after)
+	}
+	if strings.Contains(string(after), "role:") {
+		t.Fatalf("role written for a project without role:\n%s", after)
+	}
+
+	got.Role = RoleProduct
+	if err := Save(got); err != nil {
+		t.Fatal(err)
+	}
+	again, err := Load("shop")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if again.Role != RoleProduct || again.EffectiveRole() != RoleProduct {
+		t.Fatalf("role %q", again.Role)
+	}
+
+	bad := &Project{Name: "shop", Role: "qa"}
+	if err := bad.Validate(); err == nil {
+		t.Fatal("expected invalid role to fail")
 	}
 }

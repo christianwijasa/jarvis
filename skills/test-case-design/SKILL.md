@@ -36,7 +36,7 @@ this skill. Fill **Author** with whoever writes it.
 
 ## Workflow
 
-1. Read the Jira story AC (`jarvis.yaml` `jira.site`), the implementation TRD, and the PR diff if one exists.
+1. Read the Jira story AC (`jarvis.yaml` `jira.site`), the implementation TRD, and the PR diff if one exists. When `docs/plans/<KEY>/PRD.md` exists, map each case to its acceptance criteria IDs (`AC-1`, `AC-2`, ...).
 2. Find existing coverage (read-only): linked cases in the team’s test tool, tagged automated specs for the touched endpoints/screens.
 3. Build the AC → case map, then the regression list.
 4. Fill traceability, env/data/flags, functional cases, cross-service cases, regression. Every case gets **How to run**.

@@ -108,7 +108,7 @@ func TestVersionJSONSchema(t *testing.T) {
 	if got["schema_version"] != SchemaVersion || got["kind"] != "version" {
 		t.Fatalf("%v", got)
 	}
-	if got["cli_version"] != buildinfo.Version || got["skill_pack"] != "0.2.0" {
+	if got["cli_version"] != buildinfo.Version || got["skill_pack"] != "0.3.0" {
 		t.Fatalf("%v", got)
 	}
 	if _, ok := got["config_file"]; !ok {

@@ -45,6 +45,7 @@ formatted in clean bullet points, ready to copy and paste.
 - If the branch name or commits reference a Jira key:
   - Check `<history.path>/docs/plans/<JIRA-KEY>/` (from `jarvis.yaml`).
   - Read YAML frontmatter for **`tier`** and **`test_source`**.
+    Older plans may say `jarvis:TRD-Testing`; report it as `TRD-Testing`.
 - PR body should include a link to that TRD using the history repo host.
 
 ### 3. Extract & Condense Core Changes
@@ -78,7 +79,7 @@ Always provide the output in a single copy-paste-ready `markdown` code block.
 ## Story tier
 
 - **Tier:** <A|B|C from plan frontmatter or user>
-- **Test source:** <jarvis:TRD-Testing | jira:KEY | user-prompt | waived>
+- **Test source:** <TRD-Testing | jira:KEY | user-prompt | waived>
 
 ## Test plan
 

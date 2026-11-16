@@ -153,3 +153,79 @@ func isSymlink(p string) bool {
 	st, err := os.Lstat(p)
 	return err == nil && st.Mode()&os.ModeSymlink != 0
 }
+
+func bundledEntry(t *testing.T, name string) upstream.Entry {
+	t.Helper()
+	reg, err := upstream.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	e, ok := reg.Skill(name)
+	if !ok {
+		t.Fatalf("no catalog entry %s", name)
+	}
+	return e
+}
+
+func TestInstallRefusesForeignLocalFolder(t *testing.T) {
+	t.Setenv("JARVIS_HOME", t.TempDir())
+	root := t.TempDir()
+	cfg := &config.Config{Skills: config.Skills{Scope: config.ScopeBoth}}
+	cfg.Skills.Normalize()
+	foreign := filepath.Join(root, config.DefaultLocalDir, "grilling")
+	if err := os.MkdirAll(foreign, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	own := filepath.Join(foreign, "SKILL.md")
+	if err := os.WriteFile(own, []byte("team skill"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	entry := bundledEntry(t, "grilling")
+	if _, err := Install(cfg, root, entry, nil); err == nil || !strings.Contains(err.Error(), "--force") {
+		t.Fatalf("expected refusal, got %v", err)
+	}
+	if b, _ := os.ReadFile(own); string(b) != "team skill" {
+		t.Fatal("foreign folder was changed")
+	}
+	if _, err := InstallWith(cfg, root, entry, nil, Options{Force: true}); err != nil {
+		t.Fatal(err)
+	}
+	// Jarvis now owns the target (link into JARVIS_HOME), so a re-install works.
+	if _, err := Install(cfg, root, entry, nil); err != nil {
+		t.Fatalf("re-install over own link: %v", err)
+	}
+	// A Jarvis copy (pin file present) is also replaceable.
+	cfg.Skills.Copy = true
+	if _, err := Install(cfg, root, entry, nil); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Install(cfg, root, entry, nil); err != nil {
+		t.Fatalf("re-install over own copy: %v", err)
+	}
+}
+
+func TestInstallRefusesLocalInsideHistory(t *testing.T) {
+	t.Setenv("JARVIS_HOME", t.TempDir())
+	root := t.TempDir()
+	cfg := &config.Config{History: config.History{Path: "."}, Skills: config.Skills{Scope: config.ScopeLocal}}
+	cfg.Skills.Normalize()
+	if !LocalInsideHistory(cfg, root) {
+		t.Fatal("expected local dir inside history")
+	}
+	_, err := InstallWith(cfg, root, bundledEntry(t, "grilling"), nil, Options{Force: true})
+	if !errors.Is(err, ErrLocalInsideHistory) {
+		t.Fatalf("expected ErrLocalInsideHistory, got %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, config.DefaultLocalDir)); !os.IsNotExist(err) {
+		t.Fatal("local dir was created")
+	}
+	cfg.History.Path = "../elsewhere"
+	if LocalInsideHistory(cfg, root) {
+		t.Fatal("sibling history path flagged as inside")
+	}
+	cfg.Skills.Scope = config.ScopeGlobal
+	cfg.History.Path = "."
+	if _, err := Install(cfg, root, bundledEntry(t, "grilling"), nil); err != nil {
+		t.Fatalf("global scope must not be blocked: %v", err)
+	}
+}

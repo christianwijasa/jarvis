@@ -34,6 +34,7 @@ gates:
 
 # Active named project (group of repos). Files live under
 # $JARVIS_HOME/projects/<name>/project.yaml. Leave empty if unused.
+# The role (engineer or product) lives in that project.yaml, not here.
 project: ""
 
 # Skills are optional. Canonical copies live in $JARVIS_HOME/skills
