@@ -12,7 +12,7 @@ import (
 //go:embed VERSION
 //go:embed all:trd-pr-planning all:grilling all:grill-with-docs all:domain-modeling
 //go:embed all:test-case-design all:development all:debugging all:code-review
-//go:embed all:generate-pr-description all:graphify all:prd-planning
+//go:embed all:generate-pr-description all:graphify all:prd-planning all:plan-review
 var bundledFS embed.FS
 
 const PackBundled = "bundled"

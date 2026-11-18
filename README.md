@@ -37,13 +37,14 @@ Every skill is **optional** and chosen at setup. `upstream.yaml` is the
 catalog: name, upstream repo, path, pinned commit/tag, licence, mode, and a
 short description.
 
-`jarvis init` default **Recommended** set (11 skills):
+`jarvis init` default **Recommended** set (12 skills):
 
 | Skill | Role | In this repo |
 | --- | --- | --- |
 | `trd-pr-planning` | Scaffold / find a TRD in the history repo. Used by `jarvis plan`. | original |
 | `grilling` | Interview rounds until shared understanding. Has a product question set. | adapted |
 | `grill-with-docs` | Grill before a new TRD file. | adapted |
+| `plan-review` | Fresh-context review of a PRD or TRD before owner review or a PR. Based on the Elephant-Goldfish Model (EGM). | adapted |
 | `domain-modeling` | Glossary and ADRs in the history repo. | adapted |
 | `test-case-design` | Write `TRD-Testing.md`. | original |
 | `development` | Karpathy + Ponytail implementation loop. | adapted |
@@ -59,10 +60,48 @@ The product role has its own set (see [Roles](#roles-per-project)):
 | --- | --- | --- |
 | `prd-planning` | Grill, then write a PRD in the history repo. Used by `jarvis plan --type prd`. | original |
 | `grilling` | Same skill as above, with the product question set. | adapted |
+| `plan-review` | Same skill as above, with the PRD lenses. Runs before the owner reviews the PRD. | adapted |
 | `domain-modeling` | Glossary terms only under the product role. | adapted |
 
 `prd-planning` is not in the engineer set. An engineer can still run
 `jarvis skills install prd-planning`.
+
+### Plan review (Elephant-Goldfish Model)
+
+Jarvis uses an adapted form of Google's
+[Elephant-Goldfish Model (EGM)](https://github.com/google/elephant-goldfish-model)
+review approach for plan documents. The session that grilled the user and
+wrote the PRD or TRD is the "elephant": it keeps the context. The
+reviewers are "goldfish": fresh sub-agents that see only the document and
+the files it links, never the chat. They catch what the writer's context
+hides.
+
+`plan-review` runs three stages, then resolves findings:
+
+1. **Explain it back.** A fresh reviewer restates the plan in its own
+   words. A section it cannot restate is a Blocker.
+2. **Role lenses.** Two or three reviewers with a lens each. PRD: scope,
+   testability, rollout, boundary. TRD: zoom out, design critic, codebase
+   details, PRD trace.
+3. **Ready to build (TRD only).** A GO / NO-GO: no design choices left to
+   the implementer, every file to change listed, phases that each build,
+   and a verification plan.
+
+The writing session labels each finding FIX, CONTEST (with proof the
+reviewer could read), ESCALATE (ask the user), or DECLINE (nit), and
+applies only what the user accepts. It stops after two clean rounds in a
+row (no open Blocker or Major), or at five rounds with the user's call.
+
+Where it runs:
+
+- `prd-planning`: after the self-check, before the owner reviews the PRD.
+- `trd-pr-planning`: before `gh pr create`. **Tier A** is a hard gate (GO
+  or a named waiver). **Tier B** is advisory. **Tier C** skips it.
+
+If the host has no sub-agent tool, `plan-review` says so and does not
+pretend a same-session review is a fresh one. Jarvis keeps its own
+grilling rounds, story tiers, PRD/TRD split, and history repo; it does not
+ship EGM's brainstorm, drafting, bootstrap, or drift skills.
 
 Rules live in `rules/` (plain English, markdown format, commit/branch
 names, Karpathy, Ponytail, test-case and test-data gates, graph-first
@@ -149,6 +188,7 @@ Some skills and rules are adapted from, or fetched from, other projects.
 | `grilling` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock, [AI Hero](https://www.aihero.dev/skills)) | MIT |
 | `grill-with-docs` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock, [AI Hero](https://www.aihero.dev/grill-with-docs)) | MIT |
 | `domain-modeling` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock) | MIT |
+| `plan-review` | skill, adapted | [google/elephant-goldfish-model](https://github.com/google/elephant-goldfish-model) (Google, Elephant-Goldfish Model, [egm.dev](https://egm.dev)) at `210977c`; ideas and some wording rewritten in Jarvis's own words | Apache-2.0 |
 | `code-review` | skill, adapted | [mattpocock/skills](https://github.com/mattpocock/skills) (Matt Pocock); also parts of [obra/superpowers](https://github.com/obra/superpowers) and [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MIT |
 | `development` | skill, adapted | [obra/superpowers](https://github.com/obra/superpowers) (Jesse Vincent); also [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) | MIT |
 | `debugging` | skill, adapted | [obra/superpowers](https://github.com/obra/superpowers) (Jesse Vincent) | MIT |
@@ -244,7 +284,7 @@ The role of the active project (`jarvis project use`) decides:
 
 | | `engineer` | `product` |
 | --- | --- | --- |
-| Skills that apply | the recommended set (10 bundled + archify) | `prd-planning`, `grilling`, `domain-modeling` |
+| Skills that apply | the recommended set (11 bundled + archify) | `prd-planning`, `plan-review`, `grilling`, `domain-modeling` |
 | `jarvis plan <KEY>` default | `--type trd` (TRD files) | `--type prd` (`PRD.md` only) |
 | `jarvis doctor` needs | `git`, `gh`, `graphify`, repo paths, graph stamps | `git`, the product skills, a `history.path` git checkout; `gh`, a history remote, and a tracker are warnings |
 | `jarvis project clone` / `graph` | yes | refused |

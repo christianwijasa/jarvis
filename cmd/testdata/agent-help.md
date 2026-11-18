@@ -115,8 +115,8 @@ jarvis init --yes --agents-md
 jarvis init --yes --project shop
 ```
 
-`--yes` = recommended skill set (10 bundled + archify) and scope `both`, unless `--skills` / `--scope` override.
-`jarvis init --role product --project <name> --scope global --yes` installs the product set (`prd-planning`, `grilling`, `domain-modeling`) and writes `repos: {}`.
+`--yes` = recommended skill set (11 bundled + archify) and scope `both`, unless `--skills` / `--scope` override.
+`jarvis init --role product --project <name> --scope global --yes` installs the product set (`prd-planning`, `plan-review`, `grilling`, `domain-modeling`) and writes `repos: {}`.
 `--agents-md` appends a marked block to `AGENTS.md` telling agents to run `jarvis help --agent` first. It never overwrites a whole existing file; re-running refreshes the marked block only.
 
 ## Exit codes
@@ -152,9 +152,11 @@ Unknown `schema_version` means the agent should not guess the rest of the shape.
 
 ## Catalog (recommended set)
 
-Bundled (in the binary): `trd-pr-planning`, `prd-planning`, `grilling`, `grill-with-docs`, `domain-modeling`, `test-case-design`, `development`, `debugging`, `code-review`, `generate-pr-description`, `graphify`.
+Bundled (in the binary): `trd-pr-planning`, `prd-planning`, `grilling`, `grill-with-docs`, `domain-modeling`, `test-case-design`, `development`, `debugging`, `code-review`, `generate-pr-description`, `graphify`, `plan-review`.
 
-Engineer role set: the 10 bundled skills other than `prd-planning`, plus `archify`.
-Product role set: `prd-planning`, `grilling`, `domain-modeling`.
+Engineer role set: the 11 bundled skills other than `prd-planning`, plus `archify`.
+Product role set: `prd-planning`, `plan-review`, `grilling`, `domain-modeling`.
+
+`plan-review` runs fresh-context reviewers on a PRD (before owner review) or a TRD (before `gh pr create`; Tier A needs a ready-to-build GO). It adapts the Elephant-Goldfish Model (EGM) review approach.
 
 Vendored (fetch at pin): `archify` (tt-a1i/archify v3.2.0).

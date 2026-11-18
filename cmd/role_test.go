@@ -416,7 +416,7 @@ func TestInitRoleProduct(t *testing.T) {
 	}
 	got := append([]string{}, cfg.Skills.Installed...)
 	sort.Strings(got)
-	if strings.Join(got, ",") != "domain-modeling,grilling,prd-planning" {
+	if strings.Join(got, ",") != "domain-modeling,grilling,plan-review,prd-planning" {
 		t.Fatalf("installed %v", got)
 	}
 	raw, _ := os.ReadFile(config.FileName)
@@ -435,7 +435,7 @@ func TestSkillsInstallRoleAndApplies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v %s", err, errOut)
 	}
-	for _, n := range []string{"prd-planning", "grilling", "domain-modeling"} {
+	for _, n := range []string{"prd-planning", "plan-review", "grilling", "domain-modeling"} {
 		if !strings.Contains(out, "Installed "+n) {
 			t.Fatalf("missing %s: %s", n, out)
 		}
@@ -454,7 +454,7 @@ func TestSkillsInstallRoleAndApplies(t *testing.T) {
 	if err := json.Unmarshal([]byte(js), &rep); err != nil {
 		t.Fatal(err)
 	}
-	if rep.Role != "product" || rep.RoleSource != "project" || len(rep.Installed) != 3 {
+	if rep.Role != "product" || rep.RoleSource != "project" || len(rep.Installed) != 4 {
 		t.Fatalf("%+v", rep)
 	}
 	for _, it := range rep.Available {

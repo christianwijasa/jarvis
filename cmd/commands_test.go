@@ -88,7 +88,7 @@ func TestVersionOutput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, need := range []string{"CLI version:", buildinfo.Version, "Skill pack:", "0.3.0", "Config file:"} {
+	for _, need := range []string{"CLI version:", buildinfo.Version, "Skill pack:", "0.4.0", "Config file:"} {
 		if !strings.Contains(out, need) {
 			t.Errorf("version output missing %q\n%s", need, out)
 		}
@@ -398,7 +398,7 @@ func TestInitRecommendedAndSkillsCommands(t *testing.T) {
 	if cfg.Skills.Scope != config.ScopeBoth {
 		t.Fatalf("scope %s", cfg.Skills.Scope)
 	}
-	if len(cfg.Skills.Installed) != 11 {
+	if len(cfg.Skills.Installed) != 12 {
 		t.Fatalf("installed %v", cfg.Skills.Installed)
 	}
 	if _, err := os.Stat(filepath.Join(home, "skills", "grilling", "SKILL.md")); err != nil {

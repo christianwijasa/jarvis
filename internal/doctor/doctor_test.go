@@ -163,7 +163,7 @@ func row(r Report, name string) (Item, bool) {
 
 func TestProductPassesWithoutGraphify(t *testing.T) {
 	gitOnlyPATH(t)
-	ws := productSetup(t, []string{"domain-modeling", "grilling", "prd-planning"}, true)
+	ws := productSetup(t, []string{"domain-modeling", "grilling", "plan-review", "prd-planning"}, true)
 	r := Collect(ws)
 	if !r.OK || r.Role != "product" || r.RoleSource != "project" {
 		var buf bytes.Buffer
@@ -193,7 +193,7 @@ func TestProductFailsMissingSkillOrHistory(t *testing.T) {
 		t.Fatalf("missing prd-planning should fail with the fix: %+v", rs)
 	}
 
-	ws = productSetup(t, []string{"domain-modeling", "grilling", "prd-planning"}, false)
+	ws = productSetup(t, []string{"domain-modeling", "grilling", "plan-review", "prd-planning"}, false)
 	r = Collect(ws)
 	h, _ := row(r, "history.path")
 	if r.OK || h.OK {

@@ -14,6 +14,7 @@ pinned tag. These licence files still apply.
 | `archify-Apache-2.0.txt` | tt-a1i/archify `LICENSE` on current main (Apache-2.0) |
 | `archify-NOTICE.txt` | tt-a1i/archify `NOTICE` on current main |
 | `archify-MIT-v3.2.0.txt` | tt-a1i/archify `archify/LICENSE` at tag `v3.2.0` |
+| `egm-Apache-2.0.txt` | google/elephant-goldfish-model `LICENSE` at `210977c` (Apache-2.0; the repo has no NOTICE file). Covers `skills/plan-review/`. |
 
 Karpathy guidelines: the source repo has no LICENSE file (`unknown` in
 `upstream.yaml`).
