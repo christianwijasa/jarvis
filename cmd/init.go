@@ -50,8 +50,8 @@ installed. Non-TTY skips this unless the flag is given.
 --role engineer|product sets the role of the project named by --project
 (it needs --project; the role belongs to a project, not to a machine).
 --recommended and --yes then mean the recommended set for that role.
-Product installs prd-planning, grilling, and domain-modeling, and writes
-repos: {}. No --role keeps the engineer set (10 bundled + archify). On a
+Product installs prd-planning, plan-review, grilling, and domain-modeling,
+and writes repos: {}. No --role keeps the engineer set (11 bundled + archify). On a
 TTY, a new project without --role asks for the role.
 
 A local install never replaces a folder that Jarvis did not create, unless
@@ -115,6 +115,12 @@ A local install never replaces a folder that Jarvis did not create, unless
 				return err
 			}
 			out := cmd.OutOrStdout()
+			mig, err := install.MigrateRenamed(&cfg, wd)
+			if err != nil {
+				return err
+			}
+			reportMigration(out, mig)
+			names = uniqueNames(currentNames(out, names))
 			for _, name := range names {
 				entry, ok := reg.Skill(name)
 				if !ok {
@@ -155,7 +161,7 @@ A local install never replaces a folder that Jarvis did not create, unless
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&recommended, "recommended", false, "install the recommended set for the role (engineer: 10 bundled plus archify)")
+	cmd.Flags().BoolVar(&recommended, "recommended", false, "install the recommended set for the role (engineer: 11 bundled plus archify)")
 	cmd.Flags().StringVar(&skillsFlag, "skills", "", "comma-separated skill names to install")
 	cmd.Flags().BoolVar(&yes, "yes", false, "non-interactive; recommended skills and scope both unless flags say otherwise")
 	cmd.Flags().StringVar(&scopeFlag, "scope", "", "where agents load skills: global, local, or both")
@@ -289,7 +295,7 @@ func promptSkills(cmd *cobra.Command, in *bufio.Reader, reg *upstream.Registry, 
 	out := cmd.OutOrStdout()
 	fmt.Fprintln(out, "Skills to install:")
 	if roleName == "" || roleName == project.RoleEngineer {
-		fmt.Fprintln(out, "  [1] Recommended — all prepared skills (10 bundled + archify)  [default]")
+		fmt.Fprintln(out, "  [1] Recommended — all prepared skills (11 bundled + archify)  [default]")
 	} else {
 		fmt.Fprintf(out, "  [1] Recommended — %s role set (%s)  [default]\n", roleName, strings.Join(reg.SkillsForRole(roleName), ", "))
 	}

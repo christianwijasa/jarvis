@@ -6,7 +6,7 @@ import (
 )
 
 func TestVersionAndBundledSkills(t *testing.T) {
-	if Version() != "0.3.0" {
+	if Version() != "0.4.0" {
 		t.Fatalf("skill pack version: %q", Version())
 	}
 	names, err := Names()
@@ -16,7 +16,7 @@ func TestVersionAndBundledSkills(t *testing.T) {
 	want := []string{
 		"code-review", "debugging", "development", "domain-modeling",
 		"generate-pr-description", "graphify", "grill-with-docs", "grilling",
-		"prd-planning", "test-case-design", "trd-pr-planning",
+		"plan-review", "prd-planning", "test-case-design", "trd-planning",
 	}
 	got := strings.Join(names, ",")
 	for _, n := range want {
@@ -53,6 +53,23 @@ func TestVersionAndBundledSkills(t *testing.T) {
 	for _, f := range []string{"SKILL.md", "references/acceptance-criteria.md", "references/prd-review-checklist.md"} {
 		if len(prd[f]) == 0 {
 			t.Errorf("prd-planning missing %s", f)
+		}
+	}
+}
+
+func TestPlanReviewBundled(t *testing.T) {
+	tree, err := Tree("plan-review")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range []string{"SKILL.md", "references/lenses.md", "references/ready-to-build.md", "references/resolve.md"} {
+		if !strings.Contains(string(tree[f]), "google/elephant-goldfish-model") {
+			t.Errorf("plan-review %s must credit google/elephant-goldfish-model", f)
+		}
+	}
+	for _, need := range []string{"GO", "NO-GO", "Explain it back", "Tier A"} {
+		if !strings.Contains(string(tree["SKILL.md"])+string(tree["references/ready-to-build.md"]), need) {
+			t.Errorf("plan-review missing %q", need)
 		}
 	}
 }

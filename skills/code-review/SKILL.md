@@ -205,6 +205,6 @@ replace this review or change GitHub verdict logic.
 
 ## Chain position
 
-`grill-with-docs → trd-pr-planning → implement (development) → **code-review** → PR`
+`grill-with-docs → trd-planning → implement (development) → **code-review** → PR`
 
 Author acting on a review: [`references/receiving-code-review.md`](references/receiving-code-review.md).

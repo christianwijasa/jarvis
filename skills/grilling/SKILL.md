@@ -16,7 +16,7 @@ See LICENSES/mattpocock-MIT.txt and https://www.aihero.dev/skills
 
 Interview the user relentlessly until you reach a shared understanding.
 
-When trd-pr-planning, grill-with-docs, or prd-planning is active for a **new plan**, the first user-visible output after fact-fetch must be **round 1** (frontier questions + recommended answers), not a TRD or PRD draft. Map this as a **design tree**: every decision branches into the decisions that hang off it.
+When trd-planning, grill-with-docs, or prd-planning is active for a **new plan**, the first user-visible output after fact-fetch must be **round 1** (frontier questions + recommended answers), not a TRD or PRD draft. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
 Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
 

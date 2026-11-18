@@ -20,6 +20,9 @@ Scaffold only. Fill with `test-case-design` for tier A.
 
 How to check this change locally.
 
+- Related Story: {{.Issue}}
+- Related PR: (add the PR URL when it opens)
+
 ## Cases
 
 -

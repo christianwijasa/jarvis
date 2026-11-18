@@ -128,9 +128,9 @@ PRD.md, and PRD.md does not block a TRD scaffold.`,
 				fmt.Fprintln(cmd.OutOrStdout(), "Load prd-planning and grilling before filling. Do not read project secrets.")
 			} else {
 				if res.PRDFile != "" {
-					fmt.Fprintln(cmd.OutOrStdout(), "PRD.md found: read it first (trd-pr-planning).")
+					fmt.Fprintln(cmd.OutOrStdout(), "PRD.md found: read it first (trd-planning).")
 				}
-				fmt.Fprintln(cmd.OutOrStdout(), "Load grill-with-docs and trd-pr-planning before filling. Do not read project secrets.")
+				fmt.Fprintln(cmd.OutOrStdout(), "Load grill-with-docs and trd-planning before filling. Do not read project secrets.")
 			}
 			if res.Source == plan.SourceTracker && res.Tracker.MCP != "" {
 				fmt.Fprintf(cmd.OutOrStdout(), "Fetch the work item with host MCP %s.\n", res.Tracker.MCP)

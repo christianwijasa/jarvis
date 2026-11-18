@@ -10,13 +10,13 @@ source:
   snapshot_commit: aa6dad4
 
 entries:
-  - name: trd-pr-planning
+  - name: trd-planning
     kind: skill
     pack: recommended
     recommended: true
     roles: [engineer]
     summary: "Scaffold or find a TRD in the history repo."
-    local_path: skills/trd-pr-planning/SKILL.md
+    local_path: skills/trd-planning/SKILL.md
     mode: original
     upstream_repo: ""
     upstream_path: ""
@@ -37,6 +37,20 @@ entries:
     pinned_commit: ""
     licence: ""
     note: "Jarvis-written. Generic PRD method for the product role. No company, tracker, or repo names in the text."
+
+  - name: plan-review
+    kind: skill
+    pack: recommended
+    recommended: true
+    roles: [engineer, product]
+    summary: "Fresh-context review of a PRD or TRD before owner review or a PR."
+    local_path: skills/plan-review/SKILL.md
+    mode: adapted
+    upstream_repo: https://github.com/google/elephant-goldfish-model
+    upstream_path: skills/egm-review/SKILL.md
+    pinned_commit: 210977c1f76f07961d11d42b34bfd768c9267327
+    licence: Apache-2.0
+    note: "Elephant-Goldfish Model (EGM) review approach, rewritten in Jarvis's own words: explain-it-back, role lenses, TRD ready-to-build go/no-go, resolve labels and stop rule (from egm-review, egm-review-loop, egm-resolve, agents/, resources/document_standards/). Cut to three stages; no harness plugins, bootstrap, or drift report."
 
   - name: grilling
     kind: skill

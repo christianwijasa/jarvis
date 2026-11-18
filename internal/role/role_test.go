@@ -38,10 +38,10 @@ func TestResolve(t *testing.T) {
 		})
 	}
 	prod := Resolve(&config.Config{Project: "docs"})
-	if strings.Join(prod.Skills, ",") != "domain-modeling,grilling,prd-planning" {
+	if strings.Join(prod.Skills, ",") != "domain-modeling,grilling,plan-review,prd-planning" {
 		t.Fatalf("product skills %v", prod.Skills)
 	}
-	if m := MissingSkills(Product, []string{"grilling", "domain-modeling"}); len(m) != 1 || m[0] != "prd-planning" {
+	if m := MissingSkills(Product, []string{"grilling", "domain-modeling", "plan-review"}); len(m) != 1 || m[0] != "prd-planning" {
 		t.Fatalf("missing %v", m)
 	}
 	if !strings.Contains(MissingWarning("plain"), "jarvis project update plain --role engineer|product") {

@@ -91,9 +91,13 @@ Fill the scaffold from `jarvis plan`. Rules:
 
 1. Check the draft with
    [references/prd-review-checklist.md](references/prd-review-checklist.md).
-2. Show the PRD to the owner. Apply their edits.
-3. Set `status: in-review` while the owner reviews.
-4. Set `status: signed-off` only when the owner says so. A signed-off PRD is
+2. Run [plan-review](../plan-review/SKILL.md) on the PRD: fresh-context
+   reviewers explain it back and apply the PRD lenses, then resolve the
+   findings with the owner's input until its stop rule is met. If the host
+   has no sub-agents, say so and record `plan-review: not run`.
+3. Show the PRD and the plan-review result to the owner. Apply their edits.
+4. Set `status: in-review` while the owner reviews.
+5. Set `status: signed-off` only when the owner says so. A signed-off PRD is
    settled: engineers do not ask those questions again.
 
 ## 8. Hand off
@@ -108,4 +112,5 @@ Fill the scaffold from `jarvis plan`. Rules:
 - The grilling frontier is empty.
 - No placeholder text is left.
 - Open engineering checks are listed in the table.
+- plan-review met its stop rule, or the owner accepted the open findings.
 - The owner confirmed the PRD.

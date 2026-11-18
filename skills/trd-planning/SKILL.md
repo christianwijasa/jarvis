@@ -1,14 +1,15 @@
 ---
-name: trd-pr-planning
+name: trd-planning
 description: >-
   Create or find TRD plan documents in the history repo from jarvis.yaml by
   work-item key before opening PRs. Every new plan must run grill-with-docs
   first (interview rounds, wait for user) before filling docs/plans files.
-  Use when the user mentions a ticket key, creates a PR, analyzes a task,
-  or plans implementation or architecture work.
+  Run plan-review (fresh-context review, Tier A ready-to-build gate) before
+  gh pr create. Use when the user mentions a ticket key, creates a PR,
+  analyzes a task, or plans implementation or architecture work.
 ---
 
-# TRD plan before PR
+# TRD planning (before PR)
 
 Plan documents live in the **history repo** (`jarvis.yaml` `history.path`),
 under `docs/plans/`. PRs for product code open in the target repo from
@@ -129,10 +130,17 @@ Story tiers: `jarvis.yaml` `tiers` (default when unsure: `tiers.default`).
    - **Hard stop:** post grilling **round 1**, then wait. Do not open TRD templates or write under `docs/plans/` until grilling is done and the user confirms shared understanding.
 8. Read the matching template; copy structure into the output path.
 9. Fill document information from the history repo’s team file if it has one (squad, author, reviewers). **Related Story** must match the folder key. Link issues using `tracker.site` from the resolved project/`jarvis.yaml`.
-10. Complete required sections using grilled decisions. Link the glossary; link `docs/adr/` for persistent decisions. Skip sections that add no value. Do not duplicate Jira acceptance criteria into a sync file.
+10. Complete required sections using grilled decisions. Link the glossary; link `docs/adr/` for persistent decisions. Skip sections that add no value. Do not duplicate tracker acceptance criteria into a sync file.
+    - **No design choices left to the implementer.** Data shapes, API paths and payloads, error handling, retries, defaults, config keys, and new dependencies are decided in the TRD. "Update the service" is not enough.
+    - Fill **Alternatives considered** (architecture) and **Files to change**, **Phases**, and **Verification** (implementation). Fill **Related Story** and leave **Related PR** for step 14.
 11. If implementation follows an architecture doc, link it. **TRD-Testing (Tier A):** write it with [test-case-design](../test-case-design/SKILL.md).
-12. Create the PR in the **target product repo**; add the plan doc link to the PR body. When the round is final, add the team’s review label if they use one (do not invent a second process).
-13. Update the plan doc **Related PR** field with the PR URL.
+12. **Plan review** — run [plan-review](../plan-review/SKILL.md) on the TRD (fresh-context reviewers, then resolve):
+    - **Tier A:** hard gate. The ready-to-build check must be **GO** and the stop rule met, or the user must waive it by name. No `gh pr create` before that.
+    - **Tier B:** advisory. Run it and show the result; open findings do not block the PR.
+    - **Tier C:** skip unless the user asks.
+    - Record the result in one line for the PR body (for example `plan-review: 2 rounds, GO`, `plan-review: advisory, 1 open Major`, `plan-review: skipped (Tier C)`, or `plan-review: waived by <user>`).
+13. Create the PR in the **target product repo**; add the plan doc link and the plan-review line to the PR body. When the round is final, add the team’s review label if they use one (do not invent a second process).
+14. Update the plan doc **Related PR** field with the PR URL.
 
 ## TRD-Testing
 
@@ -155,9 +163,11 @@ does not approve the Jarvis doc.
 
 <link to history-repo TRD>
 
+<plan-review result line>
+
 ## Test plan
 
 <checklist>
 ```
 
-Do not run `gh pr create` until the plan doc exists and the user has reviewed it (or explicitly waived).
+Do not run `gh pr create` until the plan doc exists, the user has reviewed it (or explicitly waived), and step 12 is satisfied for the tier: **Tier A** needs a ready-to-build **GO** or a named waiver; **Tier B** needs plan-review run (advisory); **Tier C** needs nothing more.

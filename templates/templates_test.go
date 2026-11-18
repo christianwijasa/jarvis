@@ -48,6 +48,25 @@ func TestTemplatesRenderWithoutToolName(t *testing.T) {
 	}
 }
 
+func TestTRDTemplateSections(t *testing.T) {
+	want := map[string][]string{
+		"TRD-Architecture.md":   {"Related Story:", "Related PR:", "## Alternatives considered", "## Risks and mitigations", "do not\nleave design choices to the implementer"},
+		"TRD-Implementation.md": {"Related Story:", "Related PR:", "## Files to change", "## Phases", "## Verification", "No design choices are left to the implementer"},
+		"TRD-Testing.md":        {"Related Story:", "Related PR:"},
+	}
+	for name, needs := range want {
+		raw, err := FS.ReadFile(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, n := range needs {
+			if !strings.Contains(string(raw), n) {
+				t.Errorf("%s missing %q", name, n)
+			}
+		}
+	}
+}
+
 func TestPRDTemplateSections(t *testing.T) {
 	raw, err := FS.ReadFile("PRD.md")
 	if err != nil {
