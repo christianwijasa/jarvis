@@ -497,3 +497,45 @@ func TestRolePromptEmptyStdinFallsBack(t *testing.T) {
 		t.Fatalf("show: %v %q", err, errOut)
 	}
 }
+
+func TestSkillsInstallMigratesRenamedSkill(t *testing.T) {
+	home, _ := roleWorkspace(t, "")
+	old := filepath.Join(home, "skills", "trd-pr-planning")
+	if err := os.MkdirAll(old, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for f, body := range map[string]string{"SKILL.md": "old", ".jarvis-pin": "name=trd-pr-planning\nmode=original\nsource=bundled\n"} {
+		if err := os.WriteFile(filepath.Join(old, f), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cfg, err := config.Load(config.FileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.Skills.Add("trd-pr-planning")
+	if err := config.Write(config.FileName, cfg); err != nil {
+		t.Fatal(err)
+	}
+	out, errOut, err := executeSplit(t, nil, "skills", "install", "grilling")
+	if err != nil {
+		t.Fatalf("%v %s", err, errOut)
+	}
+	if !strings.Contains(out, "Removed old skill folder "+old) || !strings.Contains(out, "Installed trd-planning") {
+		t.Fatalf("migration output:\n%s", out)
+	}
+	if _, err := os.Stat(old); !os.IsNotExist(err) {
+		t.Fatalf("old folder still there: %v", err)
+	}
+	cfg, err = config.Load(config.FileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Skills.Has("trd-pr-planning") || !cfg.Skills.Has("trd-planning") {
+		t.Fatalf("installed %v", cfg.Skills.Installed)
+	}
+	out, _, err = executeSplit(t, nil, "skills", "install", "trd-pr-planning")
+	if err != nil || !strings.Contains(out, "renamed to trd-planning") {
+		t.Fatalf("old name should map to the new one: %v\n%s", err, out)
+	}
+}

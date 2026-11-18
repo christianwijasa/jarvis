@@ -1,5 +1,5 @@
 ---
-name: trd-pr-planning
+name: trd-planning
 description: >-
   Create or find TRD plan documents in the history repo from jarvis.yaml by
   work-item key before opening PRs. Every new plan must run grill-with-docs
@@ -9,7 +9,7 @@ description: >-
   analyzes a task, or plans implementation or architecture work.
 ---
 
-# TRD plan before PR
+# TRD planning (before PR)
 
 Plan documents live in the **history repo** (`jarvis.yaml` `history.path`),
 under `docs/plans/`. PRs for product code open in the target repo from

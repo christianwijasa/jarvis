@@ -16,7 +16,7 @@ func TestVersionAndBundledSkills(t *testing.T) {
 	want := []string{
 		"code-review", "debugging", "development", "domain-modeling",
 		"generate-pr-description", "graphify", "grill-with-docs", "grilling",
-		"plan-review", "prd-planning", "test-case-design", "trd-pr-planning",
+		"plan-review", "prd-planning", "test-case-design", "trd-planning",
 	}
 	got := strings.Join(names, ",")
 	for _, n := range want {

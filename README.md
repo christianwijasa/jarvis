@@ -41,7 +41,7 @@ short description.
 
 | Skill | Role | In this repo |
 | --- | --- | --- |
-| `trd-pr-planning` | Scaffold / find a TRD in the history repo. Used by `jarvis plan`. | original |
+| `trd-planning` | Scaffold / find a TRD in the history repo. Used by `jarvis plan`. | original |
 | `grilling` | Interview rounds until shared understanding. Has a product question set. | adapted |
 | `grill-with-docs` | Grill before a new TRD file. | adapted |
 | `plan-review` | Fresh-context review of a PRD or TRD before owner review or a PR. Based on the Elephant-Goldfish Model (EGM). | adapted |
@@ -95,7 +95,7 @@ row (no open Blocker or Major), or at five rounds with the user's call.
 Where it runs:
 
 - `prd-planning`: after the self-check, before the owner reviews the PRD.
-- `trd-pr-planning`: before `gh pr create`. **Tier A** is a hard gate (GO
+- `trd-planning`: before `gh pr create`. **Tier A** is a hard gate (GO
   or a named waiver). **Tier B** is advisory. **Tier C** skips it.
 
 If the host has no sub-agent tool, `plan-review` says so and does not
@@ -306,6 +306,28 @@ the PRD "Source notes" section. TRD files do not block a new `PRD.md`, and
 read it first and do not ask settled product questions again. Engineers
 answer the PRD "Engineering checks" in the TRD and copy each answer back
 into the PRD table with a link, so the product owner can review it.
+
+### Upgrading: `trd-pr-planning` is now `trd-planning`
+
+Skill pack 0.4.0 renames the TRD skill `trd-pr-planning` to `trd-planning`.
+`jarvis update` changes only the binary. To move installed skills, run
+`jarvis skills install --role engineer` (or `jarvis skills install
+trd-planning`) in each working tree that has a `jarvis.yaml`.
+
+Each `jarvis skills install` (and `jarvis init`) first cleans up the old
+name:
+
+- It removes `$JARVIS_HOME/skills/trd-pr-planning` and the project-local
+  `trd-pr-planning` (in `skills.local_dir`) **only if Jarvis installed
+  them**: a folder whose `.jarvis-pin` says `name=trd-pr-planning`, or a
+  local link into `$JARVIS_HOME`.
+- It keeps any other folder with that name and prints its path, so you can
+  remove it by hand.
+- It replaces `trd-pr-planning` with `trd-planning` in `skills.installed`
+  and installs `trd-planning`.
+- `jarvis skills install trd-pr-planning` installs `trd-planning` and says so.
+
+Until then, `jarvis doctor` lists `trd-planning` as a missing role skill.
 
 ### Upgrading from v0.0.4 (projects with no role)
 

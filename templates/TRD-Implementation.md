@@ -14,7 +14,7 @@ status: draft
 
 Status: draft
 
-Scaffold only. Load `grill-with-docs` and `trd-pr-planning` before filling.
+Scaffold only. Load `grill-with-docs` and `trd-planning` before filling.
 
 ## Summary
 

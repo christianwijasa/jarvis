@@ -40,7 +40,7 @@ Match style and patterns of the repo you are editing. Paths come from
 
 0. **Record source baseline** — inspect the selected checkout and preserve unrelated changes. Fetch/pull/checkout/rebase only under explicit authorized scope.
 
-1. **Plan** — TRD doc exists or user waived; see [`trd-pr-planning`](../trd-pr-planning/SKILL.md).
+1. **Plan** — TRD doc exists or user waived; see [`trd-planning`](../trd-planning/SKILL.md).
 2. **Test case gate** — when `jarvis.yaml` `gates.test_case` is true, load [`plan-execution-test-case-guard`](../../rules/plan-execution-test-case-guard.md). Read `tier` / `test_source` from plan frontmatter. **Hard stop** when the gate applies and checks fail. If the user waives, add `test-case-gate:` in-code notes.
 3. **Test data setup gate** — when `gates.test_data` is true, load [`plan-execution-test-data-guard`](../../rules/plan-execution-test-data-guard.md) before data-dependent edits.
 4. **Understand** — TRD + graph query ([graph-first-analysis](../../rules/graph-first-analysis.md)): map the story to code, then read **only** files/lines at cited locations (plus files you will edit). Trace end-to-end along that path. State assumptions or ask.
@@ -118,7 +118,7 @@ ceiling and upgrade path. No comment for ordinary simple code.
 
 | Skill | When |
 | ----- | ---- |
-| [`trd-pr-planning`](../trd-pr-planning/SKILL.md) | Before PR / plan doc |
+| [`trd-planning`](../trd-planning/SKILL.md) | Before PR / plan doc |
 | [`graphify`](../graphify/SKILL.md) | Optional codebase analysis |
 | [`debugging`](../debugging/SKILL.md) | Failing test, red CI or unknown cause |
 | [`receiving-code-review`](../code-review/references/receiving-code-review.md) | Acting on review comments |

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -307,7 +308,14 @@ instead of symlink.`,
 			if err != nil {
 				return err
 			}
-			names := append([]string{}, args...)
+			out := cmd.OutOrStdout()
+			mig, err := install.MigrateRenamed(cfg, projectRoot)
+			if err != nil {
+				return err
+			}
+			reportMigration(out, mig)
+			names := currentNames(out, args)
+			names = append(names, mig.Install...)
 			if cmd.Flags().Changed("role") {
 				r := strings.ToLower(strings.TrimSpace(roleFlag))
 				if !role.Valid(r) {
@@ -315,7 +323,6 @@ instead of symlink.`,
 				}
 				names = append(names, reg.SkillsForRole(r)...)
 			}
-			out := cmd.OutOrStdout()
 			for _, name := range uniqueNames(names) {
 				entry, ok := reg.Skill(name)
 				if !ok {
@@ -342,6 +349,29 @@ instead of symlink.`,
 	cmd.Flags().StringVar(&roleFlag, "role", "", "install the recommended set for a role: engineer or product")
 	cmd.Flags().BoolVar(&force, "force", false, "replace existing local skill folders that Jarvis did not create")
 	return cmd
+}
+
+// currentNames maps renamed skills to their current names and says so.
+func currentNames(out io.Writer, in []string) []string {
+	res := make([]string, 0, len(in))
+	for _, n := range in {
+		cur, renamed := install.CurrentName(n)
+		if renamed {
+			fmt.Fprintf(out, "Skill %s was renamed to %s; installing %s\n", n, cur, cur)
+		}
+		res = append(res, cur)
+	}
+	return res
+}
+
+// reportMigration prints what MigrateRenamed removed or kept.
+func reportMigration(out io.Writer, m install.Migration) {
+	for _, p := range m.Removed {
+		fmt.Fprintf(out, "Removed old skill folder %s (renamed skill)\n", p)
+	}
+	for _, p := range m.Kept {
+		fmt.Fprintf(out, "Kept %s: not installed by Jarvis; remove it by hand if unused\n", p)
+	}
 }
 
 func uniqueNames(in []string) []string {

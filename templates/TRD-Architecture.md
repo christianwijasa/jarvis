@@ -14,7 +14,7 @@ status: draft
 
 Status: draft
 
-Scaffold only. Load `grill-with-docs` and `trd-pr-planning` before filling.
+Scaffold only. Load `grill-with-docs` and `trd-planning` before filling.
 If `source` is tracker, fetch the work item via the host MCP named in the project.
 If `source` is user, use the pasted requirement or `REQUIREMENT.md`.
 

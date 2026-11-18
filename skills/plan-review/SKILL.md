@@ -4,7 +4,7 @@ description: >-
   Fresh-context review of a PRD or TRD before it goes to its owner or before
   a product PR opens. Runs an explain-it-back check, role lenses, and (TRD
   only) a ready-to-build go/no-go, then resolves findings in the writing
-  session. Use when prd-planning or trd-pr-planning reaches review, or when
+  session. Use when prd-planning or trd-planning reaches review, or when
   the user asks to review a plan document.
 ---
 
@@ -36,10 +36,10 @@ This follows the Elephant-Goldfish Model (EGM): the writing session is the
 | Caller | When | Target |
 | ------ | ---- | ------ |
 | prd-planning | after the self-check, before the owner sees the PRD | `docs/plans/<KEY>/PRD.md` |
-| trd-pr-planning | after the TRD is filled, before `gh pr create` | primary `TRD-*.md` (and per-repo impl files) |
+| trd-planning | after the TRD is filled, before `gh pr create` | primary `TRD-*.md` (and per-repo impl files) |
 | user | "review this plan", "plan-review" | any plan file |
 
-Tier rules for TRDs come from trd-pr-planning: **Tier A** must pass, **Tier
+Tier rules for TRDs come from trd-planning: **Tier A** must pass, **Tier
 B** is advisory, **Tier C** skips this skill unless the user asks.
 
 ## Fresh reviewers only

@@ -3,7 +3,7 @@ name: grill-with-docs
 description: >-
   Mandatory first step for every new TRD plan. Interview (grilling rounds)
   before any docs/plans file or template fill; writes the glossary and ADRs
-  as terms resolve. Also use for major TRD rewrites, trd-pr-planning on a
+  as terms resolve. Also use for major TRD rewrites, trd-planning on a
   new work-item key, or when the user says /grill-with-docs. Based on
   https://www.aihero.dev/grill-with-docs.
 ---
@@ -32,7 +32,7 @@ Before any new file under `docs/plans/` or copying a TRD template:
 2. Fetch facts (tracker, graphify, code) per workflow below.
 3. Post **grilling round 1** — full frontier, numbered questions, recommended answers (`➡️`), then **stop and wait** for the user.
 4. Continue rounds until the frontier is empty and the user confirms shared understanding.
-5. Only then may trd-pr-planning create plan files and fill templates.
+5. Only then may trd-planning create plan files and fill templates.
 
 If the agent would skip the interview and write a TRD in one shot, **stop** — that violates this gate. Minor typo/link fixes skip only when the user explicitly says so.
 

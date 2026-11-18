@@ -167,7 +167,7 @@ func TestRegistryRoles(t *testing.T) {
 		}
 	}
 	eng := strings.Join(reg.RecommendedSkillNames(), ",")
-	want := "archify,code-review,debugging,development,domain-modeling,generate-pr-description,graphify,grill-with-docs,grilling,plan-review,test-case-design,trd-pr-planning"
+	want := "archify,code-review,debugging,development,domain-modeling,generate-pr-description,graphify,grill-with-docs,grilling,plan-review,test-case-design,trd-planning"
 	if eng != want {
 		t.Fatalf("engineer set changed:\n got %s\nwant %s", eng, want)
 	}

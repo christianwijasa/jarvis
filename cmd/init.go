@@ -115,6 +115,12 @@ A local install never replaces a folder that Jarvis did not create, unless
 				return err
 			}
 			out := cmd.OutOrStdout()
+			mig, err := install.MigrateRenamed(&cfg, wd)
+			if err != nil {
+				return err
+			}
+			reportMigration(out, mig)
+			names = uniqueNames(currentNames(out, names))
 			for _, name := range names {
 				entry, ok := reg.Skill(name)
 				if !ok {

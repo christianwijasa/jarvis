@@ -57,7 +57,7 @@ Rules: shipped under `rules/` in the Jarvis CLI repo, not installed per project.
 | `jarvis skills install <name...>` | Install catalog entries at the pin | Needs `jarvis.yaml`; `--copy`; `--role <role>` installs that role's set; `--force` replaces a local folder Jarvis did not create |
 | `jarvis skills remove <name>` | Uninstall | Needs `jarvis.yaml` |
 | `jarvis skills upstream` | Read-only pin vs latest | `--json`; never applies updates |
-| `jarvis plan <KEY>` | Find or scaffold a PRD (`prd-planning`) or TRD (`trd-pr-planning`) | `--json`; `--type prd\|trd` (default from the role); `--from`; `--repo` / `--tier` are TRD only; no model/tracker API. `source: tracker` uses host MCP; `source: user` uses markdown. Never read project secrets. |
+| `jarvis plan <KEY>` | Find or scaffold a PRD (`prd-planning`) or TRD (`trd-planning`) | `--json`; `--type prd\|trd` (default from the role); `--from`; `--repo` / `--tier` are TRD only; no model/tracker API. `source: tracker` uses host MCP; `source: user` uses markdown. Never read project secrets. |
 | `jarvis update` | Latest **tag**, not main | needs `gh`; `--check` / `--json`; never follows `main` |
 | `jarvis project list` / `show` / `current` / `graph-path` / `status` | Named repo groups and graph location | `--json` on these reads; status SHA freshness vs origin; `--fetch` optional |
 | `jarvis project graph <name>` | Build combined graphify graph | needs `graphify` on PATH; `--if-stale` fetches origin and extracts only stale SHAs; empty extract falls back to in-repo `graphify-out` or skips |
@@ -152,7 +152,7 @@ Unknown `schema_version` means the agent should not guess the rest of the shape.
 
 ## Catalog (recommended set)
 
-Bundled (in the binary): `trd-pr-planning`, `prd-planning`, `grilling`, `grill-with-docs`, `domain-modeling`, `test-case-design`, `development`, `debugging`, `code-review`, `generate-pr-description`, `graphify`, `plan-review`.
+Bundled (in the binary): `trd-planning`, `prd-planning`, `grilling`, `grill-with-docs`, `domain-modeling`, `test-case-design`, `development`, `debugging`, `code-review`, `generate-pr-description`, `graphify`, `plan-review`.
 
 Engineer role set: the 11 bundled skills other than `prd-planning`, plus `archify`.
 Product role set: `prd-planning`, `plan-review`, `grilling`, `domain-modeling`.
