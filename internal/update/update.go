@@ -47,26 +47,78 @@ type Client struct {
 }
 
 func (c Client) run(timeout time.Duration, name string, args ...string) ([]byte, error) {
+	var out []byte
+	var err error
 	if c.Run != nil {
-		return c.Run(name, args...)
-	}
-	var cmd *exec.Cmd
-	if timeout > 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		cmd = exec.CommandContext(ctx, name, args...)
+		out, err = c.Run(name, args...)
 	} else {
-		cmd = exec.Command(name, args...)
+		var cmd *exec.Cmd
+		if timeout > 0 {
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+			cmd = exec.CommandContext(ctx, name, args...)
+		} else {
+			cmd = exec.Command(name, args...)
+		}
+		out, err = cmd.CombinedOutput()
 	}
-	out, err := cmd.CombinedOutput()
 	if err != nil {
 		msg := strings.TrimSpace(string(out))
 		if msg == "" {
 			msg = err.Error()
 		}
-		return out, fmt.Errorf("gh %s: %s", strings.Join(args, " "), msg)
+		// Do not include --repo args; they may name the default owner.
+		return out, fmt.Errorf("%s: %s", ghVerb(args), redactDefaultRepo(msg))
 	}
 	return out, nil
+}
+
+func ghVerb(args []string) string {
+	switch {
+	case len(args) >= 2:
+		return "gh " + args[0] + " " + args[1]
+	case len(args) == 1:
+		return "gh " + args[0]
+	default:
+		return "gh"
+	}
+}
+
+func isDefaultRepo(repo string) bool {
+	return strings.EqualFold(strings.TrimSpace(repo), DefaultRepo)
+}
+
+// redactDefaultRepo removes the default owner/name from user-visible text.
+// The constant is still used to query GitHub Releases.
+func redactDefaultRepo(s string) string {
+	if s == "" {
+		return s
+	}
+	s = replaceFold(s, "https://github.com/"+DefaultRepo, "the jarvis GitHub repository")
+	s = replaceFold(s, "http://github.com/"+DefaultRepo, "the jarvis GitHub repository")
+	s = replaceFold(s, "github.com/"+DefaultRepo, "the jarvis GitHub repository")
+	s = replaceFold(s, DefaultRepo, "the jarvis release repository")
+	return s
+}
+
+func replaceFold(s, old, neu string) string {
+	if s == "" || old == "" {
+		return s
+	}
+	lower := strings.ToLower(s)
+	oldLower := strings.ToLower(old)
+	var b strings.Builder
+	for {
+		i := strings.Index(lower, oldLower)
+		if i < 0 {
+			b.WriteString(s)
+			return b.String()
+		}
+		b.WriteString(s[:i])
+		b.WriteString(neu)
+		s = s[i+len(old):]
+		lower = lower[i+len(old):]
+	}
 }
 
 func (c Client) lookPath(name string) (string, error) {
@@ -128,11 +180,15 @@ func (c Client) Apply(opts Options) (Result, error) {
 	}
 
 	prog := opts.progress()
-	writeProgress(prog, "checking latest release of %s\n", repo)
+	if isDefaultRepo(repo) {
+		writeProgress(prog, "checking latest GitHub Release\n")
+	} else {
+		writeProgress(prog, "checking latest release of %s\n", repo)
+	}
 
 	raw, err := c.run(opts.Timeout, "gh", "release", "view", "--repo", repo, "--json", "tagName,assets")
 	if err != nil {
-		return res, fmt.Errorf("no GitHub Releases for %s (tag a v* release first): %w", repo, err)
+		return res, noReleasesErr(repo, err)
 	}
 	var rel ghRelease
 	if err := json.Unmarshal(raw, &rel); err != nil {
@@ -140,7 +196,7 @@ func (c Client) Apply(opts Options) (Result, error) {
 	}
 	res.Latest = strings.TrimSpace(rel.TagName)
 	if res.Latest == "" {
-		return res, fmt.Errorf("no GitHub Releases for %s (tag a v* release first)", repo)
+		return res, noReleasesErr(repo, nil)
 	}
 
 	if !opts.Check && res.Current != "dev" && res.Current == res.Latest {
@@ -191,6 +247,17 @@ func (c Client) Apply(opts Options) (Result, error) {
 	}
 	res.Updated = true
 	return res, nil
+}
+
+func noReleasesErr(repo string, cause error) error {
+	base := "no GitHub Releases found (tag a v* release first)"
+	if !isDefaultRepo(repo) {
+		base = fmt.Sprintf("no GitHub Releases for %s (tag a v* release first)", repo)
+	}
+	if cause != nil {
+		return fmt.Errorf("%s: %w", base, cause)
+	}
+	return fmt.Errorf("%s", base)
 }
 
 type ghRelease struct {

@@ -99,6 +99,12 @@ func TestApplyProgressOmitsResultLine(t *testing.T) {
 	if !strings.Contains(got, "downloading") {
 		t.Fatalf("expected download progress, got %q", got)
 	}
+	if strings.Contains(strings.ToLower(got), "christianwijasa") {
+		t.Fatalf("progress printed default owner name: %q", got)
+	}
+	if !strings.Contains(got, "checking latest GitHub Release") {
+		t.Fatalf("expected generic default-repo progress, got %q", got)
+	}
 }
 
 func TestApplyCheckDoesNotWrite(t *testing.T) {
@@ -211,6 +217,67 @@ func TestApplyNoReleases(t *testing.T) {
 	_, err := c.Apply(Options{Current: "dev", Dest: filepath.Join(t.TempDir(), "jarvis")})
 	if err == nil || !strings.Contains(err.Error(), "no GitHub Releases") {
 		t.Fatalf("err %v", err)
+	}
+	if strings.Contains(strings.ToLower(err.Error()), "christianwijasa") {
+		t.Fatalf("error printed default owner name: %v", err)
+	}
+}
+
+func TestApplyCustomRepoStillNamed(t *testing.T) {
+	c := Client{
+		LookPath: func(string) (string, error) { return "/bin/gh", nil },
+		Run: func(name string, args ...string) ([]byte, error) {
+			return nil, errors.New("HTTP 404")
+		},
+	}
+	var prog strings.Builder
+	_, err := c.Apply(Options{
+		Repo:     "example/jarvis",
+		Current:  "dev",
+		Dest:     filepath.Join(t.TempDir(), "jarvis"),
+		Progress: &prog,
+	})
+	if err == nil || !strings.Contains(err.Error(), "no GitHub Releases for example/jarvis") {
+		t.Fatalf("err %v", err)
+	}
+	if !strings.Contains(prog.String(), "checking latest release of example/jarvis") {
+		t.Fatalf("progress %q", prog.String())
+	}
+}
+
+func TestRedactDefaultRepo(t *testing.T) {
+	in := "failed: https://github.com/" + DefaultRepo + " HTTP 404 from " + DefaultRepo
+	got := redactDefaultRepo(in)
+	if strings.Contains(strings.ToLower(got), "christianwijasa") {
+		t.Fatalf("still present: %q", got)
+	}
+	if !strings.Contains(got, "the jarvis GitHub repository") {
+		t.Fatalf("missing url rewrite: %q", got)
+	}
+	if redactDefaultRepo("clean") != "clean" {
+		t.Fatal("changed unrelated text")
+	}
+}
+
+func TestRunOmitsDefaultRepoFromError(t *testing.T) {
+	c := Client{
+		Run: func(name string, args ...string) ([]byte, error) {
+			return []byte("Not Found: " + DefaultRepo), errors.New("exit 1")
+		},
+	}
+	_, err := c.run(0, "gh", "release", "view", "--repo", DefaultRepo, "--json", "tagName")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	msg := err.Error()
+	if !strings.HasPrefix(msg, "gh release view: ") {
+		t.Fatalf("verb: %q", msg)
+	}
+	if strings.Contains(msg, "--repo") {
+		t.Fatalf("error included gh args: %q", msg)
+	}
+	if strings.Contains(strings.ToLower(msg), "christianwijasa") {
+		t.Fatalf("error printed default owner name: %q", msg)
 	}
 }
 

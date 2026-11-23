@@ -186,3 +186,31 @@ func TestDoctorJSONSchema(t *testing.T) {
 		}
 	}
 }
+
+func TestCLIOutputOmitsOwnerName(t *testing.T) {
+	t.Setenv("JARVIS_HOME", t.TempDir())
+	t.Setenv("JARVIS_DISABLE_AUTO_UPDATE", "1")
+	cmds := [][]string{
+		{"--help"},
+		{"help"},
+		{"help", "--agent"},
+		{"help", "--agent", "--json"},
+		{"agent-help"},
+		{"help", "update"},
+		{"update", "--help"},
+		{"version"},
+		{"version", "--json"},
+		{"doctor"},
+		{"doctor", "--json"},
+		{"skills", "--help"},
+		{"init", "--help"},
+		{"plan", "--help"},
+		{"project", "--help"},
+	}
+	for _, args := range cmds {
+		out, _ := execute(t, args...)
+		if strings.Contains(strings.ToLower(out), "christianwijasa") {
+			t.Errorf("%v printed owner name:\n%s", args, out)
+		}
+	}
+}

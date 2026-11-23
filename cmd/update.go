@@ -81,7 +81,7 @@ JARVIS_DISABLE_UPDATE_PROMPT applies without asking.`,
 	}
 	addJSONFlag(cmd, &asJSON)
 	cmd.Flags().BoolVar(&check, "check", false, "print current vs latest tag; do not download")
-	cmd.Flags().StringVar(&repo, "repo", update.DefaultRepo, "GitHub owner/name of the jarvis CLI")
+	cmd.Flags().StringVar(&repo, "repo", "", "GitHub owner/name of the jarvis CLI (defaults to this CLI's release repository)")
 	return cmd
 }
 
