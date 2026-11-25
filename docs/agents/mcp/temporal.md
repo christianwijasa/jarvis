@@ -14,8 +14,8 @@ lists `temporal` under `mcp`. Check with `jarvis project show <name> --json`.
 If `mcp` is missing or does not include `temporal`, skip Temporal MCP.
 Do not ask the user to connect a cluster.
 
-`bfi-lora-agency` opts in. A later project leaves `mcp` without `temporal`
-unless that team needs workflow tools.
+A project that needs workflow tools lists `temporal`. Other projects leave
+`mcp` without that id.
 
 ## Server
 
@@ -36,12 +36,12 @@ Do not put host, namespace, or API key in the hub catalog.
 | `TEMPORAL_TLS_ENABLED` | Force TLS | auto-detect |
 | `TEMPORAL_ALLOWED_NAMESPACES` | Comma list, or `*` | default namespace only |
 
-LORA Go services split host and port (`TEMPORAL_HOST` plus `TEMPORAL_PORT`).
+Some apps split host and port (`TEMPORAL_HOST` plus `TEMPORAL_PORT`).
 This MCP wants one `TEMPORAL_HOST` value with the port included.
 
 When `TEMPORAL_API_KEY` is set, the server enables TLS.
 
-Payload encryption in LORA is a codec concern. Without
+Payload encryption is a codec concern. Without
 `TEMPORAL_CODEC_ENDPOINT`, history payloads stay encoded.
 
 ## Tools
@@ -86,9 +86,9 @@ it through `envFile`. Then reload MCP.
 Example:
 
 ```
-TEMPORAL_HOST=ap-southeast-1.aws.api.temporal.io:7233
-TEMPORAL_NAMESPACE=lora-sit.ixing
+TEMPORAL_HOST=region.aws.api.temporal.io:7233
+TEMPORAL_NAMESPACE=default
 TEMPORAL_API_KEY=
 TEMPORAL_TLS_ENABLED=true
-TEMPORAL_ALLOWED_NAMESPACES=lora-sit.ixing
+TEMPORAL_ALLOWED_NAMESPACES=default
 ```
