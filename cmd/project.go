@@ -485,7 +485,7 @@ func newProjectShowCmd() *cobra.Command {
 		Long: `Print project yaml fields, role, optional mcp list, and graph.json path.
 A repo with a url and no path is reference-only: it is shown, never cloned.
 
-If mcp omits cloud-logging, agents must not call the Cloud Logging server.`,
+If mcp omits a catalog id, agents must not call that server.`,
 		Example: `  jarvis project show shop --json`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

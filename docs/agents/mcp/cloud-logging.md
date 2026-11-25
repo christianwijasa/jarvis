@@ -14,8 +14,8 @@ lists `cloud-logging` under `mcp`. Check with `jarvis project show <name> --json
 If `mcp` is missing or does not include `cloud-logging`, skip GCP logs. Do
 not ask the user to connect Google Cloud.
 
-`bfi-bravo-agency` and `bfi-lora-agency` opt in. A later project leaves `mcp`
-unset unless that team needs logs.
+`bfi-bravo-agency` and `bfi-lora-agency` opt in to `cloud-logging`. A later
+project leaves that id off `mcp` unless that team needs logs.
 
 ## Server
 

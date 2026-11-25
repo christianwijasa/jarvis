@@ -6,6 +6,11 @@
       "env": {
         "GOOGLE_CLOUD_PROJECT": "${env:GOOGLE_CLOUD_PROJECT}"
       }
+    },
+    "temporal": {
+      "command": "uvx",
+      "args": ["temporal-mcp-server==1.12.0"],
+      "envFile": "${userHome}/.cursor/temporal.env"
     }
   }
 }

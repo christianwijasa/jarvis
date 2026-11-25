@@ -1,0 +1,21 @@
+---
+description: >-
+  Optional Temporal MCP. Use only when the named Jarvis
+  project.yaml lists temporal under mcp.
+alwaysApply: false
+---
+
+# Temporal MCP
+
+Load [`docs/agents/mcp/temporal.md`](docs/agents/mcp/temporal.md).
+
+Call `temporal` only if `jarvis project show <name> --json` includes
+`temporal` in `project.mcp`. If the list is missing or empty, skip Temporal.
+Do not ask the user to connect a cluster.
+
+Host is `TEMPORAL_HOST` as `host:port`. Namespace is `TEMPORAL_NAMESPACE`.
+Do not put keys or hosts in git.
+
+Prefer `list_workflows`, `describe_workflow`, and history tools.
+Do not call start, signal, cancel, terminate, or batch tools unless the
+user names the workflow and asks to change it.
